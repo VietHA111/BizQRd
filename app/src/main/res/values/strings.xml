@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">BizQD</string>
+    <string name="help">Help</string>
+    <string name="bizqrd">BizQRd</string>
+    <string name="set_contact_information">Set Contact Information</string>
+    <string name="choose_contact">Choose Contact</string>
+    <string name="choose_image">Choose Image</string>
+    <string name="download">Download</string>
+</resources>
