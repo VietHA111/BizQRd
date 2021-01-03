@@ -6,4 +6,6 @@
     <string name="choose_contact">Choose Contact</string>
     <string name="choose_image">Choose Image</string>
     <string name="download">Download</string>
+    <string name="qrcode">qrcode</string>
+    <string name="background">background</string>
 </resources>

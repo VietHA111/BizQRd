@@ -6,7 +6,7 @@ import android.os.Bundle;
 
 import com.example.bizqd.R;
 
-public class Help extends AppCompatActivity {
+public class HelpActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
