@@ -2,26 +2,41 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:background="@android:color/background_light">
 
-    <ImageView
-        android:id="@+id/background"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:contentDescription="@string/background" />
+    <RelativeLayout
+        android:id="@+id/backgroundLayout"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+        <ImageView
+            android:id="@+id/background"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:contentDescription="@string/background" />
+
+        <ImageView
+            android:id="@+id/qrCode"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:contentDescription="@string/qrcode" />
+    </RelativeLayout>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentTop="true">
+        android:layout_alignParentTop="true"
+        android:background="#FFFFFF">
 
         <ImageButton
             android:id="@+id/help"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#FFFFFF"
-            app:srcCompat="@drawable/icons8_ask_question_48"
-            android:contentDescription="@string/help" />
+            android:contentDescription="@string/help"
+            app:srcCompat="@drawable/icons8_ask_question_48" />
 
         <TextView
             android:id="@+id/title"
@@ -29,16 +44,16 @@
             android:layout_height="match_parent"
             android:layout_weight="4"
             android:gravity="center"
-            android:textSize="30sp"
-            android:text="@string/bizqrd" />
+            android:text="@string/bizqrd"
+            android:textSize="30sp" />
 
         <ImageButton
             android:id="@+id/settings"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:background="#FFFFFF"
-            app:srcCompat="@drawable/icons8_automation_48"
-            android:contentDescription="@string/set_contact_information" />
+            android:contentDescription="@string/set_contact_information"
+            app:srcCompat="@drawable/icons8_automation_48" />
 
     </LinearLayout>
 
@@ -54,8 +69,8 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="#FFFFFF"
-            app:srcCompat="@drawable/icons8_person_48"
-            android:contentDescription="@string/choose_contact" />
+            android:contentDescription="@string/choose_contact"
+            app:srcCompat="@drawable/icons8_person_48" />
 
         <ImageButton
             android:id="@+id/image"
@@ -67,20 +82,15 @@
             app:srcCompat="@drawable/icons8_picture_48__1_" />
 
         <ImageButton
-            android:id="@+id/download"
+            android:id="@+id/save"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="#FFFFFF"
-            app:srcCompat="@drawable/icons8_download_48"
-            android:contentDescription="@string/download" />
+            android:contentDescription="@string/download"
+            app:srcCompat="@drawable/icons8_download_48" />
     </LinearLayout>
 
-    <ImageView
-        android:id="@+id/qrCode"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_centerInParent="true"
-        android:contentDescription="@string/qrcode" />
+
 
 </RelativeLayout>

@@ -1,35 +1,54 @@
 package com.example.bizqd.activities;
 
+import android.Manifest;
 import android.app.Activity;
+import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.RelativeLayout;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.preference.PreferenceManager;
 
 import com.example.bizqd.R;
+import com.example.bizqd.model.QRCodeGenerator;
 
 import net.glxn.qrgen.android.QRCode;
+
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.util.HashMap;
 
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
 import ezvcard.VCardVersion;
 import ezvcard.parameter.TelephoneType;
-import ezvcard.property.StructuredName;
+
+import static androidx.preference.PreferenceManager.setDefaultValues;
+import static java.lang.Boolean.FALSE;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -38,19 +57,28 @@ public class MainActivity extends AppCompatActivity {
     int CODE_GALLERY_REQUEST = 1;
     int CODE_PICK_CONTACT = 2;
     int CODE_REQUEST_READ_CONTACT = 3;
+    int CODE_REQUEST_SET_WALLPAPER = 4;
 
-    ImageButton help, settings, contacts, image, download;
+    ImageButton help, settings, contacts, image, save;
     ImageView background, qrImage;
     Uri imageUri;
+    boolean[] settingsArray;
 
     private Uri uriContact;
-    private String contactID;     // contacts unique ID
     private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        settings = findViewById(R.id.settings);
+        settings.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                settingsActivity();
+            }
+        });
 
         help = findViewById(R.id.help);
         help.setOnClickListener(new View.OnClickListener() {
@@ -60,6 +88,13 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        save = findViewById(R.id.save);
+        save.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                saveImage();
+            }
+        });
 
         background = findViewById(R.id.background);
         image = findViewById(R.id.image);
@@ -74,17 +109,30 @@ public class MainActivity extends AppCompatActivity {
         contacts.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                pickContact();
+                getContactPermission();
             }
         });
 
         qrImage = findViewById(R.id.qrCode);
+
+        setDefaultValues(this, R.xml.preferences, false);
+
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+        settingsArray = new boolean[10];
+        settingsArray[0] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_PREF, FALSE);
+        settingsArray[1] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_GIVEN, FALSE);
+        settingsArray[2] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_MIDDLE, FALSE);
+        settingsArray[3] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_FAMILY, FALSE);
+        settingsArray[4] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_SUFF, FALSE);
+        settingsArray[5] = sharedPref.getBoolean(SettingsActivity.KEY_NICKNAME, FALSE);
+        settingsArray[6] = sharedPref.getBoolean(SettingsActivity.KEY_ORG, FALSE);
+        settingsArray[7] = sharedPref.getBoolean(SettingsActivity.KEY_DEPT, FALSE);
+        settingsArray[8] = sharedPref.getBoolean(SettingsActivity.KEY_JOB, FALSE);
+        settingsArray[9] = sharedPref.getBoolean(SettingsActivity.KEY_POSTAL, FALSE);
     }
 
 
-
-
-    private void pickContact() {
+    private void getContactPermission() {
         mContext = MainActivity.this;
         if (Build.VERSION.SDK_INT >= 23) {
             String[] PERMISSIONS = {android.Manifest.permission.READ_CONTACTS};
@@ -102,7 +150,7 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
-            case 2: {
+            case 3: {
                 if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                     readContacts();
                 } else {
@@ -123,8 +171,39 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private void saveImage() {
+        Bitmap bg = getBackground();
+
+        WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
+
+        try {
+            wallpaperManager.setBitmap(bg);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private Bitmap getBackground() {
+        RelativeLayout backgroundLayout = findViewById(R.id.backgroundLayout);
+        Bitmap bgImage = Bitmap.createBitmap(backgroundLayout.getWidth(),backgroundLayout.getHeight(),Bitmap.Config.ARGB_8888);
+        Canvas canvas = new Canvas(bgImage);
+        Drawable bgDrawable = backgroundLayout.getBackground();
+        if (bgDrawable != null){
+            bgDrawable.draw(canvas);
+        }else {
+            canvas.drawColor(getResources().getColor(android.R.color.white));
+        }
+        backgroundLayout.draw(canvas);
+        return bgImage;
+    }
+
     private void readContacts() {
         startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), CODE_PICK_CONTACT);
+    }
+
+    private void settingsActivity() {
+        Intent settingsAct = new Intent(this, SettingsActivity.class);
+        startActivity(settingsAct);
     }
 
     private void helpActivity() {
@@ -148,97 +227,11 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == CODE_PICK_CONTACT) {
             Log.d(TAG, "Response: " + data.toString());
             uriContact = data.getData();
-            contactPicked();
-
+            QRCodeGenerator qrCodeGen = new QRCodeGenerator(uriContact, mContext, settingsArray);
+            Bitmap qrCode = qrCodeGen.generateQRCode();
+            qrImage.setImageBitmap(qrCode.createScaledBitmap(qrCode, 700, 700, false));
         }
     }
 
-    private void generateQRCode(String name, String phoneNo) {
-        VCard vcard = new VCard();
 
-//        StructuredName n = new StructuredName();
-//        n.setFamily("Doe");
-//        n.setGiven("Jonathan");
-//        n.getPrefixes().add("Mr");
-//        vcard.setStructuredName(n);
-
-        vcard.setFormattedName(name);
-
-        vcard.addTelephoneNumber(phoneNo, TelephoneType.CELL);
-
-        String str = Ezvcard.write(vcard).version(VCardVersion.V4_0).go();
-
-        Bitmap myBitmap = QRCode.from(str).bitmap();
-        qrImage.setImageBitmap(myBitmap.createScaledBitmap(myBitmap, 700, 700, false));
-    }
-
-    private void contactPicked() {
-        String name = retrieveContactName();
-        String phoneNo = retrieveContactNumber();
-
-        generateQRCode(name, phoneNo);
-    }
-
-
-    private String retrieveContactNumber() {
-
-        String contactNumber = null;
-
-        // getting contacts ID
-        Cursor cursorID = getContentResolver().query(uriContact,
-                new String[]{ContactsContract.Contacts._ID},
-                null, null, null);
-
-        if (cursorID.moveToFirst()) {
-
-            contactID = cursorID.getString(cursorID.getColumnIndex(ContactsContract.Contacts._ID));
-        }
-
-        cursorID.close();
-
-        Log.d(TAG, "Contact ID: " + contactID);
-
-        // Using the contact ID now we will get contact phone number
-        Cursor cursorPhone = getContentResolver().query(ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
-                new String[]{ContactsContract.CommonDataKinds.Phone.NUMBER},
-
-                ContactsContract.CommonDataKinds.Phone.CONTACT_ID + " = ? AND " +
-                        ContactsContract.CommonDataKinds.Phone.TYPE + " = " +
-                        ContactsContract.CommonDataKinds.Phone.TYPE_MOBILE,
-
-                new String[]{contactID},
-                null);
-
-        if (cursorPhone.moveToFirst()) {
-            contactNumber = cursorPhone.getString(cursorPhone.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
-        }
-
-        cursorPhone.close();
-
-        Log.d(TAG, "Contact Phone Number: " + contactNumber);
-
-        return contactNumber;
-    }
-
-    private String retrieveContactName() {
-
-        String contactName = null;
-
-        // querying contact data store
-        Cursor cursor = getContentResolver().query(uriContact, null, null, null, null);
-
-        if (cursor.moveToFirst()) {
-
-            // DISPLAY_NAME = The display name for the contact.
-            // HAS_PHONE_NUMBER =   An indicator of whether this contact has at least one phone number.
-
-            contactName = cursor.getString(cursor.getColumnIndex(ContactsContract.Contacts.DISPLAY_NAME));
-        }
-
-        cursor.close();
-
-        Log.d(TAG, "Contact Name: " + contactName);
-
-        return contactName;
-    }
 }

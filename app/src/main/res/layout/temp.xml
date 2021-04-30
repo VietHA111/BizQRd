@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="#FFFFFF">
+
+        <Button
+            android:id="@+id/cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#00FFFFFF"
+            android:contentDescription="@string/cancel_settings"
+            android:text="@string/cancel" />
+
+        <TextView
+            android:id="@+id/settingsTitle"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="4"
+            android:gravity="center"
+            android:text="@string/settings"
+            android:contentDescription="@string/settings_title"
+            android:textSize="30sp" />
+
+        <Button
+            android:id="@+id/done"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="#00FFFFFF"
+            android:contentDescription="@string/complete_settings"
+            android:text="@string/done" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:paddingVertical="8sp"
+        android:paddingHorizontal="30sp"
+        android:text="@string/select_the_contact_information_that_you_wish_to_include_in_your_qr_code" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchNamePref"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/name_prefix" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchGiven"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/given_name" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchMiddle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/middle_name" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchFamily"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/family_name" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchPrevFamily"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/previous_family_name" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchNameSuf"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/name_suffix" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchNickname"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/nickname" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchOrg"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/organization" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchDepartment"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/department" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchJob"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/job_title" />
+
+    <androidx.appcompat.widget.SwitchCompat
+        android:id="@+id/switchPostal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="30sp"
+        android:padding="4dp"
+        android:text="@string/postal_addresses" />
+
+
+</LinearLayout>
