@@ -225,11 +225,12 @@ public class MainActivity extends AppCompatActivity {
                 background.setImageURI(imageUri);
             }
         if (requestCode == CODE_PICK_CONTACT) {
-            Log.d(TAG, "Response: " + data.toString());
-            uriContact = data.getData();
-            QRCodeGenerator qrCodeGen = new QRCodeGenerator(uriContact, mContext, settingsArray);
-            Bitmap qrCode = qrCodeGen.generateQRCode();
-            qrImage.setImageBitmap(qrCode.createScaledBitmap(qrCode, 700, 700, false));
+            if (data != null) {
+                uriContact = data.getData();
+                QRCodeGenerator qrCodeGen = new QRCodeGenerator(uriContact, mContext, settingsArray);
+                Bitmap qrCode = qrCodeGen.generateQRCode();
+                qrImage.setImageBitmap(qrCode.createScaledBitmap(qrCode, 700, 700, false));
+            }
         }
     }
 
