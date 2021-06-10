@@ -1,24 +1,19 @@
 package com.example.bizqd.activities;
 
-import android.Manifest;
 import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
-import android.provider.Settings;
-import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -33,38 +28,23 @@ import androidx.preference.PreferenceManager;
 import com.example.bizqd.R;
 import com.example.bizqd.model.QRCodeGenerator;
 
-import net.glxn.qrgen.android.QRCode;
-
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.util.HashMap;
-
-import ezvcard.Ezvcard;
-import ezvcard.VCard;
-import ezvcard.VCardVersion;
-import ezvcard.parameter.TelephoneType;
 
 import static androidx.preference.PreferenceManager.setDefaultValues;
 import static java.lang.Boolean.FALSE;
 
 
 public class MainActivity extends AppCompatActivity {
-    private static final String TAG = MainActivity.class.getSimpleName();
 
     int CODE_GALLERY_REQUEST = 1;
     int CODE_PICK_CONTACT = 2;
     int CODE_REQUEST_READ_CONTACT = 3;
-    int CODE_REQUEST_SET_WALLPAPER = 4;
 
     ImageButton help, settings, contacts, image, save;
     ImageView background, qrImage;
     Uri imageUri;
     boolean[] settingsArray;
 
-    private Uri uriContact;
     private Context mContext;
 
     @Override
@@ -118,7 +98,7 @@ public class MainActivity extends AppCompatActivity {
         setDefaultValues(this, R.xml.preferences, false);
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        settingsArray = new boolean[10];
+        settingsArray = new boolean[11];
         settingsArray[0] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_PREF, FALSE);
         settingsArray[1] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_GIVEN, FALSE);
         settingsArray[2] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_MIDDLE, FALSE);
@@ -129,6 +109,8 @@ public class MainActivity extends AppCompatActivity {
         settingsArray[7] = sharedPref.getBoolean(SettingsActivity.KEY_DEPT, FALSE);
         settingsArray[8] = sharedPref.getBoolean(SettingsActivity.KEY_JOB, FALSE);
         settingsArray[9] = sharedPref.getBoolean(SettingsActivity.KEY_POSTAL, FALSE);
+        settingsArray[10] = sharedPref.getBoolean(SettingsActivity.KEY_NOTES, FALSE);
+
     }
 
 
@@ -226,10 +208,10 @@ public class MainActivity extends AppCompatActivity {
             }
         if (requestCode == CODE_PICK_CONTACT) {
             if (data != null) {
-                uriContact = data.getData();
+                Uri uriContact = data.getData();
                 QRCodeGenerator qrCodeGen = new QRCodeGenerator(uriContact, mContext, settingsArray);
                 Bitmap qrCode = qrCodeGen.generateQRCode();
-                qrImage.setImageBitmap(qrCode.createScaledBitmap(qrCode, 700, 700, false));
+                qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
             }
         }
     }

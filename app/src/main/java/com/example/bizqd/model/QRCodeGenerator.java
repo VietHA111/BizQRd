@@ -6,25 +6,25 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.provider.ContactsContract;
 
-import com.example.bizqd.activities.MainActivity;
-
 import net.glxn.qrgen.android.QRCode;
 
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
 import ezvcard.VCardVersion;
+import ezvcard.parameter.AddressType;
+import ezvcard.parameter.TelephoneType;
+import ezvcard.property.Address;
 import ezvcard.property.Nickname;
 import ezvcard.property.Organization;
 import ezvcard.property.StructuredName;
 
 public class QRCodeGenerator {
-    private static final String TAG = MainActivity.class.getSimpleName();
     private static final String SELECTION = ContactsContract.Data.LOOKUP_KEY + " = ?" + " AND " + ContactsContract.Data.MIMETYPE + " = ?";
 
-    private Uri uriContact;
+    private final Uri uriContact;
     private String lookupKey;
-    private Context mContext;
-    private boolean[] settings;
+    private final Context mContext;
+    private final boolean[] settings;
 
     public QRCodeGenerator(Uri uriContact, Context mContext, boolean[] settings) {
         this.uriContact = uriContact;
@@ -33,29 +33,54 @@ public class QRCodeGenerator {
     }
 
     public Bitmap generateQRCode() {
-        String str = formVCard();
-        for (int i = 0; i < 10; i++) {
-            System.out.println(settings[i]);
-        }
+        VCard v = formVCard();
 
+        String str = Ezvcard.write(v).version(VCardVersion.V4_0).go();
 
         return QRCode.from(str).bitmap();
     }
 
-    private String retrieveContactNumber(String v) {
+    private VCard formVCard() {
+        getLookupKey();
+        VCard vCard = new VCard();
+
+        if (settings[9]) {
+            setPostalAddress(vCard);
+        }
+
+        retrieveContactNumber(vCard);
+
+        StructuredName name = retrieveContactName();
+
+        vCard.setStructuredName(name);
+
+        if (settings[5]) {
+            getNickname(vCard);
+        }
+
+        setJobInfo(vCard);
+
+        if (settings[10]) {
+            setNotes(vCard);
+        }
+
+        return vCard;
+    }
+
+    private void retrieveContactNumber(VCard v) {
 
         String[] phoneSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.Phone.CONTENT_ITEM_TYPE};
         Cursor phoneCur = mContext.getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, SELECTION, phoneSelectionArgs, null);
         while (phoneCur.moveToNext()) {
 //            contactNumber = phoneCur.getString(phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
 //            numberType = phoneCur.getInt(phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE));
-            v += "TEL;TYPE=" + convertIntToTelephone(phoneCur.getInt(phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE))) + ";VALUE=uri:" + phoneCur.getString(phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)) + "\n";
+            v.addTelephoneNumber(phoneCur.getString(phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)), convertIntToTelephone(phoneCur.getInt(phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE))));
         }
-        return v;
+        phoneCur.close();
     }
 
-    private String retrieveContactName(String v) {
-        v += "N:";
+    private StructuredName retrieveContactName() {
+        StructuredName n = new StructuredName();
 
         String[] nameSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE};
         Cursor nameCur = mContext.getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, SELECTION, nameSelectionArgs, null);
@@ -64,164 +89,152 @@ public class QRCodeGenerator {
             if (settings[2]) {
                 String fam = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME));
                 if (fam != null) {
-                    v += fam;
+                    n.setFamily(fam);
                 }
             }
-            v += ";";
             if (settings[1]) {
                 String giv = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME));
                 if (giv != null) {
-                    v += giv;
+                    n.setGiven(giv);
                 }
             }
-            v += ";";
             if (settings[3]) {
                 String mid = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME));
                 if (mid != null) {
-                    v += mid;
+                    n.getAdditionalNames().add(mid);
                 }
             }
-            v += ";";
             if (settings[0]) {
                 String pref = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.PREFIX));
                 if (pref != null) {
-                    v += pref;
+                    n.getPrefixes().add(pref);
                 }
             }
-            v += ";";
             if (settings[4]) {
                 String suf = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.SUFFIX));
                 if (suf != null) {
-                    v += suf;
+                    n.getSuffixes().add(suf);
                 }
             }
-            v += "\n";
         }
         nameCur.close();
-        return v;
+        return n;
     }
 
-    private String getNickname(String v) {
-        v += "NICKNAME:";
+    private void getNickname(VCard v) {
+        Nickname n = new Nickname();
         String[] nickSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE};
         Cursor nickCur = mContext.getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, SELECTION, nickSelectionArgs, null);
-        boolean first = true;
         while (nickCur.moveToNext()) {
-            if (!first) {
-                v += ",";
-            } else {
-                first = false;
-            }
             String nick = nickCur.getString(nickCur.getColumnIndex(ContactsContract.CommonDataKinds.Nickname.NAME));
             if (nick != null) {
-                v += nick;
+                n.getValues().add(nick);
             }
         }
-        v += "\n";
+        v.addNickname(n);
         nickCur.close();
-        return v;
     }
 
-    private String setJobInfo(String v) {
+    private void setJobInfo(VCard v) {
 
         String [] jobSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.Organization.CONTENT_ITEM_TYPE};
 
         Cursor jobCur = mContext.getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, SELECTION, jobSelectionArgs, null);
         if (jobCur.moveToFirst()) {
-            v += "ORG:";
+            Organization org = new Organization();
             if (settings[6]) {
                 String company = jobCur.getString(jobCur.getColumnIndex(ContactsContract.CommonDataKinds.Organization.COMPANY));
                 if (company != null) {
-                    v += company;
+                    org.getValues().add(company);
                 }
             }
-            v += ";";
             if (settings[7]) {
                 String dep = jobCur.getString(jobCur.getColumnIndex(ContactsContract.CommonDataKinds.Organization.DEPARTMENT));
                 if (dep != null) {
-                    v += dep;
+                    org.getValues().add(dep);
                 }
             }
-            v += "\n";
+            v.setOrganization(org);
             if (settings[8]) {
                 String job = jobCur.getString(jobCur.getColumnIndex(ContactsContract.CommonDataKinds.Organization.TITLE));
                 if (job != null) {
-                    v += "TITLE:" + job + "\n";
+                    v.addTitle(job);
                 }
             }
         }
         jobCur.close();
-        return v;
     }
 
-    private String setPostalAddress(String v) {
+    private void setPostalAddress(VCard v) {
         String [] addressSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.StructuredPostal.CONTENT_ITEM_TYPE};
 
         Cursor addCur = mContext.getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, SELECTION, addressSelectionArgs, null);
         while (addCur.moveToNext()) {
+            Address address = new Address();
             int type = addCur.getInt(addCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.TYPE));
-            v += "ADR;TYPE=" + getTypeString(type) + ":";
+            address.getTypes().add(convertIntToAddressType(type));
             String poBox = addCur.getString(addCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.POBOX));
             if (poBox != null) {
-                v += poBox;
+                address.setPoBox(poBox);
             }
-            v += ";;";
             String streetAddress = addCur.getString(addCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.STREET));
             if (streetAddress != null) {
-                v += streetAddress + ";";
+                address.setStreetAddress(streetAddress);
             }
             String city = addCur.getString(addCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.CITY));
             if (city != null) {
-                v += city + ";";
+                address.setLocality(city);
             }
             String region = addCur.getString(addCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.REGION));
             if (region != null) {
-                v += region + ";";
+                address.setRegion(region);
             }
             String postCode = addCur.getString(addCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.POSTCODE));
             if (postCode != null) {
-                v += postCode + ";";
+                address.setPostalCode(postCode);
             }
             String country = addCur.getString(addCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredPostal.COUNTRY));
             if (country != null) {
-                v += country + "\n";
+                address.setCountry(country);
             }
+            v.addAddress(address);
         }
         addCur.close();
-        return v;
     }
 
-    private String formVCard() {
-        getLookupKey();
-        String vCard = "BEGIN:VCARD\n" +
-                "VERSION:4.0\n";
 
-        vCard = retrieveContactNumber(vCard);
+    private void setNotes(VCard vCard) {
+        String [] notesSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE};
 
-        vCard = retrieveContactName(vCard);
-
-        if (settings[5]) {
-            vCard = getNickname(vCard);
+        Cursor noteCur = mContext.getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, SELECTION, notesSelectionArgs, null);
+        if (noteCur.moveToFirst()) {
+            String notes = noteCur.getString(noteCur.getColumnIndex(ContactsContract.CommonDataKinds.Note.NOTE));
+            if (notes != null) {
+                vCard.addNote(notes);
+            }
         }
-
-        vCard = setJobInfo(vCard);
-
-        if (settings[9]) {
-            vCard = setPostalAddress(vCard);
-        }
-
-        vCard += "END:VCARD\n";
-        return vCard;
+        noteCur.close();
     }
 
-    private String convertIntToTelephone(int i) {
+    private TelephoneType convertIntToTelephone(int i) {
         switch (i) {
             case 1:
-                return "Home";
+                return TelephoneType.HOME;
             case 3:
-                return "Work";
+                return TelephoneType.WORK;
             default:
-                return "Mobile";
+                return TelephoneType.CELL;
+        }
+    }
+
+    private AddressType convertIntToAddressType(int i) {
+        switch (i) {
+            case 1:
+                return AddressType.HOME;
+            case 2:
+                return AddressType.WORK;
+            default:
+                return AddressType.PREF;
         }
     }
 
@@ -233,13 +246,7 @@ public class QRCodeGenerator {
             lookupKey = cursor.getString(cursor.getColumnIndex(
                     ContactsContract.Contacts.LOOKUP_KEY));
         }
+        cursor.close();
     }
 
-    private String getTypeString(int i) {
-        if (i == 2) {
-            return "work";
-        } else {
-            return "home";
-        }
-    }
 }

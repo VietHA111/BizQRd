@@ -51,4 +51,9 @@
         android:defaultValue="false"
         android:key="postal"
         android:title="@string/PostalAddresses" />
+
+    <androidx.preference.SwitchPreferenceCompat
+        android:defaultValue="false"
+        android:key="notes"
+        android:title="@string/Notes" />
 </PreferenceScreen>

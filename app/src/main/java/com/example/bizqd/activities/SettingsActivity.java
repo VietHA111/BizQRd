@@ -18,6 +18,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String KEY_DEPT = "dept";
     public static final String KEY_JOB = "job";
     public static final String KEY_POSTAL = "postal";
+    public static final String KEY_NOTES = "notes";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

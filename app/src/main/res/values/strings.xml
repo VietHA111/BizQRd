@@ -51,4 +51,5 @@
     <string name="Department">Department</string>
     <string name="JobTitle">Job Title</string>
     <string name="PostalAddresses">Postal Addresses</string>
+    <string name="Notes">Notes</string>
 </resources>
