@@ -175,6 +175,7 @@ public class MainActivity extends AppCompatActivity {
                 MainActivity.super.onBackPressed();
             }
         });
+        alertDlg.create().show();
     }
 
     private void saveImage() {
