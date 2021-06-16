@@ -1,8 +1,10 @@
 package com.example.bizqd.activities;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.WallpaperManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -27,6 +29,7 @@ import androidx.preference.PreferenceManager;
 
 import com.example.bizqd.R;
 import com.example.bizqd.model.QRCodeGenerator;
+import com.example.bizqd.model.VCardGenerator;
 
 import java.io.IOException;
 
@@ -72,7 +75,7 @@ public class MainActivity extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                saveImage();
+                createDialog();
             }
         });
 
@@ -153,6 +156,27 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    private void createDialog() {
+        AlertDialog.Builder alertDlg = new AlertDialog.Builder(this);
+        alertDlg.setMessage("Would you like to set this image as your background?");
+        alertDlg.setCancelable(false);
+
+        alertDlg.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                saveImage();
+            }
+        });
+
+        alertDlg.setNegativeButton("No", new DialogInterface.OnClickListener() {
+
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                MainActivity.super.onBackPressed();
+            }
+        });
+    }
+
     private void saveImage() {
         Bitmap bg = getBackground();
 
@@ -209,9 +233,12 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == CODE_PICK_CONTACT) {
             if (data != null) {
                 Uri uriContact = data.getData();
-                QRCodeGenerator qrCodeGen = new QRCodeGenerator(uriContact, mContext, settingsArray);
-                Bitmap qrCode = qrCodeGen.generateQRCode();
-                qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
+                try {
+                    Bitmap qrCode = QRCodeGenerator.generateQRCode(uriContact, mContext, settingsArray);
+                    qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
     }
