@@ -1,8 +1,10 @@
 package com.example.bizqd.activities;
 
+import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.WallpaperManager;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -11,10 +13,11 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
-import android.media.ThumbnailUtils;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.view.View;
@@ -25,16 +28,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import com.example.bizqd.R;
+import com.example.bizqd.model.BitmapConverter;
 import com.example.bizqd.model.QRCodeGenerator;
-import com.example.bizqd.model.VCardGenerator;
+import com.example.bizqd.model.SingleMediaScanner;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.lang.reflect.Array;
+import java.nio.file.Files;
+import java.util.Locale;
 
+import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static androidx.preference.PreferenceManager.setDefaultValues;
 import static java.lang.Boolean.FALSE;
 
@@ -44,6 +56,8 @@ public class MainActivity extends AppCompatActivity {
     int CODE_GALLERY_REQUEST = 1;
     int CODE_PICK_CONTACT = 2;
     int CODE_REQUEST_READ_CONTACT = 3;
+    int REQUEST_CODE_WRITE = 4;
+    int REQUEST_CODE_READ = 5;
 
     ImageButton help, settings, contacts, image, save;
     ImageView background, qrImage;
@@ -74,11 +88,18 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+
+        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_READ);
+
         save = findViewById(R.id.save);
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                createDialog();
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE);
+                } else {
+                    createDialog();
+                }
             }
         });
 
@@ -87,6 +108,9 @@ public class MainActivity extends AppCompatActivity {
         image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_READ);
+                }
                 chooseImage();
             }
         });
@@ -140,7 +164,7 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode) {
             case 3: {
-                if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                if (grantResults.length > 0 && grantResults[0] == PERMISSION_GRANTED) {
                     readContacts();
                 } else {
                     Toast.makeText(mContext, "The app was not allowed to read your contact", Toast.LENGTH_LONG).show();
@@ -152,7 +176,7 @@ public class MainActivity extends AppCompatActivity {
     private static boolean hasPermissions(Context context, String... permissions) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
             for (String permission : permissions) {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PackageManager.PERMISSION_GRANTED) {
+                if (ActivityCompat.checkSelfPermission(context, permission) != PERMISSION_GRANTED) {
                     return false;
                 }
             }
@@ -162,13 +186,13 @@ public class MainActivity extends AppCompatActivity {
 
     private void createDialog() {
         AlertDialog.Builder alertDlg = new AlertDialog.Builder(this);
-        alertDlg.setMessage("Would you like to set this image as your background?");
+        alertDlg.setMessage("Would you like to save this image?");
         alertDlg.setCancelable(false);
 
         alertDlg.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                saveImage();
+                saveImageToGallery();
             }
         });
 
@@ -182,16 +206,40 @@ public class MainActivity extends AppCompatActivity {
         alertDlg.create().show();
     }
 
-    private void saveImage() {
-        Bitmap bg = getBackground();
+    @RequiresApi(api = Build.VERSION_CODES.O)
+    private void saveImageToGallery() {
+//        RelativeLayout backgroundLayout = findViewById(R.id.backgroundLayout);
+//        Bitmap bgArray[] = new Array[];
+//        BitmapConverter bitmapConverter = new BitmapConverter(bg);
+        long time = System.currentTimeMillis();
+        Bitmap bitmap = getBackground();
+        String filename = String.format("%d.png", time);
 
-        WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
-
+        FileOutputStream outputStream = null;
+        File dir = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "BizQRd");
+        dir.mkdirs();
+        File outFile = new File(dir, filename);
         try {
-            wallpaperManager.setBitmap(bg);
-        } catch (IOException e) {
+            outputStream = new FileOutputStream(outFile);
+        } catch (Exception e){
             e.printStackTrace();
         }
+        System.out.println(bitmap);
+        System.out.println(outputStream);
+        bitmap.compress(Bitmap.CompressFormat.PNG,100, outputStream);
+        try{
+            outputStream.flush();
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        try{
+            outputStream.close();
+        }
+        catch (Exception e){
+            e.printStackTrace();
+        }
+
+        new SingleMediaScanner(MainActivity.this, outFile);
     }
 
     private Bitmap getBackground() {
