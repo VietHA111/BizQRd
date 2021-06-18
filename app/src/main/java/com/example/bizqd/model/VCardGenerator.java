@@ -95,7 +95,7 @@ public class VCardGenerator {
         String lastName = "";
 
         if (nameCur.moveToFirst()) {
-            if (settings[2]) {
+            if (settings[3]) {
                 String fam = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME));
                 if (fam != null) {
                     n.setFamily(fam);
@@ -109,7 +109,7 @@ public class VCardGenerator {
                     firstName = giv;
                 }
             }
-            if (settings[3]) {
+            if (settings[2]) {
                 String mid = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME));
                 if (mid != null) {
                     n.getAdditionalNames().add(mid);

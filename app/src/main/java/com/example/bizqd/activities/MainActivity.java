@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
+import android.media.ThumbnailUtils;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -195,6 +196,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Bitmap getBackground() {
         RelativeLayout backgroundLayout = findViewById(R.id.backgroundLayout);
+        CharSequence prevName = name.getText();
+        name.setText("");
         Bitmap bgImage = Bitmap.createBitmap(backgroundLayout.getWidth(),backgroundLayout.getHeight(),Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bgImage);
         Drawable bgDrawable = backgroundLayout.getBackground();
@@ -204,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
             canvas.drawColor(getResources().getColor(android.R.color.white));
         }
         backgroundLayout.draw(canvas);
+        name.setText(prevName);
         return bgImage;
     }
 
