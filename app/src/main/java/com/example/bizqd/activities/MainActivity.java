@@ -20,6 +20,7 @@ import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -45,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
     ImageButton help, settings, contacts, image, save;
     ImageView background, qrImage;
+    TextView name;
     Uri imageUri;
     boolean[] settingsArray;
 
@@ -98,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
 
         qrImage = findViewById(R.id.qrCode);
 
+        name = (TextView) findViewById(R.id.name);
+
         setDefaultValues(this, R.xml.preferences, false);
 
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
@@ -115,7 +119,6 @@ public class MainActivity extends AppCompatActivity {
         settingsArray[10] = sharedPref.getBoolean(SettingsActivity.KEY_NOTES, FALSE);
 
     }
-
 
     private void getContactPermission() {
         mContext = MainActivity.this;
@@ -172,7 +175,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                MainActivity.super.onBackPressed();
+
             }
         });
         alertDlg.create().show();
@@ -235,7 +238,10 @@ public class MainActivity extends AppCompatActivity {
             if (data != null) {
                 Uri uriContact = data.getData();
                 try {
-                    Bitmap qrCode = QRCodeGenerator.generateQRCode(uriContact, mContext, settingsArray);
+                    QRCodeGenerator qrCodeGenerator = new QRCodeGenerator(uriContact, mContext, settingsArray);
+                    Bitmap qrCode = qrCodeGenerator.generateQRCode();
+                    name.setText(qrCodeGenerator.getFirstLastName());
+
                     qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
                 } catch (Exception e) {
                     e.printStackTrace();

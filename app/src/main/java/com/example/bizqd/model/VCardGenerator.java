@@ -25,6 +25,7 @@ import ezvcard.property.StructuredName;
 public class VCardGenerator {
     private static final String SELECTION = ContactsContract.Data.LOOKUP_KEY + " = ?" + " AND " + ContactsContract.Data.MIMETYPE + " = ?";
 
+    private String firstLastName;
     private final Uri uriContact;
     private String lookupKey;
     private final Context mContext;
@@ -34,6 +35,10 @@ public class VCardGenerator {
         this.uriContact = uriContact;
         this.mContext = mContext;
         this.settings = settings;
+    }
+
+    public String getFirstLastName() {
+        return firstLastName;
     }
 
     public String generateVCard() {
@@ -86,18 +91,22 @@ public class VCardGenerator {
 
         String[] nameSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.StructuredName.CONTENT_ITEM_TYPE};
         Cursor nameCur = mContext.getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, SELECTION, nameSelectionArgs, null);
+        String firstName = "";
+        String lastName = "";
 
         if (nameCur.moveToFirst()) {
             if (settings[2]) {
                 String fam = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME));
                 if (fam != null) {
                     n.setFamily(fam);
+                    lastName = fam;
                 }
             }
             if (settings[1]) {
                 String giv = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME));
                 if (giv != null) {
                     n.setGiven(giv);
+                    firstName = giv;
                 }
             }
             if (settings[3]) {
@@ -120,6 +129,7 @@ public class VCardGenerator {
             }
         }
         nameCur.close();
+        firstLastName = firstName + " " + lastName;
         return n;
     }
 

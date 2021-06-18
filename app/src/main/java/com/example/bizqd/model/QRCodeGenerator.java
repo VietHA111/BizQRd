@@ -10,14 +10,16 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
+import ezvcard.VCard;
+
 public class QRCodeGenerator {
+    VCardGenerator vCardGenerator;
 
-    public QRCodeGenerator() {
-
+    public QRCodeGenerator(Uri uriContact, Context mContext, boolean[] settings) {
+        this.vCardGenerator = new VCardGenerator(uriContact, mContext, settings);
     }
 
-    public static Bitmap generateQRCode(Uri uriContact, Context mContext, boolean[] settings) throws Exception {
-        VCardGenerator vCardGenerator = new VCardGenerator(uriContact, mContext, settings);
+    public Bitmap generateQRCode() throws Exception {
         String vCard = vCardGenerator.generateVCard();
 
         MultiFormatWriter multiFormatWriter = new MultiFormatWriter();
@@ -37,5 +39,9 @@ public class QRCodeGenerator {
             }
         }
         return bmp;
+    }
+
+    public String getFirstLastName() {
+        return vCardGenerator.getFirstLastName();
     }
 }

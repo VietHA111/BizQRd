@@ -17,12 +17,24 @@
             android:contentDescription="@string/background"
             android:scaleType="centerCrop"/>
 
+
         <ImageView
             android:id="@+id/qrCode"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
             android:contentDescription="@string/qrcode" />
+
+        <TextView
+            android:id="@+id/name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignBottom="@id/qrCode"
+            android:layout_centerInParent="true"
+            android:textColor="@android:color/black"
+            android:textSize="18sp" />
+
+
     </RelativeLayout>
 
     <LinearLayout
