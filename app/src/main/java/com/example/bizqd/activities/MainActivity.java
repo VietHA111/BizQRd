@@ -3,7 +3,7 @@ package com.example.bizqd.activities;
 import android.Manifest;
 import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.WallpaperManager;
+import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -20,6 +20,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
+import android.util.Log;
 import android.view.View;
 import android.widget.ImageButton;
 import android.widget.ImageView;
@@ -27,6 +28,9 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.RequiresApi;
 import androidx.appcompat.app.AppCompatActivity;
@@ -35,16 +39,14 @@ import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import com.example.bizqd.R;
-import com.example.bizqd.model.BitmapConverter;
 import com.example.bizqd.model.QRCodeGenerator;
-import com.example.bizqd.model.SingleMediaScanner;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.nio.file.Files;
-import java.util.Locale;
+import java.io.OutputStream;
+import java.util.Objects;
 
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static androidx.preference.PreferenceManager.setDefaultValues;
@@ -65,7 +67,6 @@ public class MainActivity extends AppCompatActivity {
     Uri imageUri;
     boolean[] settingsArray;
 
-    private Context mContext;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,18 +89,11 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
-        ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_READ);
-
         save = findViewById(R.id.save);
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_CODE_WRITE);
-                } else {
-                    createDialog();
-                }
+                getWritePermission();
             }
         });
 
@@ -108,10 +102,7 @@ public class MainActivity extends AppCompatActivity {
         image.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) != PERMISSION_GRANTED) {
-                    ActivityCompat.requestPermissions(MainActivity.this, new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_CODE_READ);
-                }
-                chooseImage();
+                getReadPermission();
             }
         });
 
@@ -125,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
 
         qrImage = findViewById(R.id.qrCode);
 
-        name = (TextView) findViewById(R.id.name);
+        name = findViewById(R.id.name);
 
         setDefaultValues(this, R.xml.preferences, false);
 
@@ -145,101 +136,130 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private ActivityResultLauncher<String> contactRequestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    readContacts();
+                } else {
+                    Toast.makeText(MainActivity.this, "The app was not allowed to read your contacts", Toast.LENGTH_LONG).show();
+                }
+            });
+
     private void getContactPermission() {
-        mContext = MainActivity.this;
+
         if (Build.VERSION.SDK_INT >= 23) {
-            String[] PERMISSIONS = {android.Manifest.permission.READ_CONTACTS};
-            if (!hasPermissions(mContext, PERMISSIONS)) {
-                ActivityCompat.requestPermissions((Activity) mContext, PERMISSIONS, CODE_REQUEST_READ_CONTACT );
-            } else {
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_CONTACTS) == PERMISSION_GRANTED) {
                 readContacts();
+            } else {
+                contactRequestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS);
             }
-        } else {
-            readContacts();
-        }
+        } else readContacts();
+    }
+
+    private ActivityResultLauncher<String> readRequestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    chooseImage();
+                } else {
+                    Toast.makeText(MainActivity.this, "The app was not allowed to view your images", Toast.LENGTH_LONG).show();
+                }
+            });
+
+    private void getReadPermission() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED) {
+                chooseImage();
+            } else {
+                readRequestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+        } else chooseImage();
+    }
+
+    private ActivityResultLauncher<String> writeRequestPermissionLauncher =
+            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
+                if (isGranted) {
+                    createDialog();
+                } else {
+                    Toast.makeText(MainActivity.this, "The app was not allowed to save your image", Toast.LENGTH_LONG).show();
+                }
+            });
+
+    private void getWritePermission() {
+        if (Build.VERSION.SDK_INT >= 23) {
+            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED) {
+                createDialog();
+            } else {
+                writeRequestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
+            }
+        } else createDialog();
     }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        switch (requestCode) {
-            case 3: {
-                if (grantResults.length > 0 && grantResults[0] == PERMISSION_GRANTED) {
-                    readContacts();
-                } else {
-                    Toast.makeText(mContext, "The app was not allowed to read your contact", Toast.LENGTH_LONG).show();
-                }
+        if (requestCode == 3) {
+            if (grantResults.length > 0 && grantResults[0] == PERMISSION_GRANTED) {
+                readContacts();
+            } else {
+                Toast.makeText(MainActivity.this, "The app was not allowed to read your contacts", Toast.LENGTH_LONG).show();
             }
         }
     }
 
-    private static boolean hasPermissions(Context context, String... permissions) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && context != null && permissions != null) {
-            for (String permission : permissions) {
-                if (ActivityCompat.checkSelfPermission(context, permission) != PERMISSION_GRANTED) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
 
     private void createDialog() {
         AlertDialog.Builder alertDlg = new AlertDialog.Builder(this);
         alertDlg.setMessage("Would you like to save this image?");
         alertDlg.setCancelable(false);
 
-        alertDlg.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                saveImageToGallery();
-            }
-        });
+        alertDlg.setPositiveButton("Yes", (dialog, which) -> saveImageToGallery());
 
-        alertDlg.setNegativeButton("No", new DialogInterface.OnClickListener() {
+        alertDlg.setNegativeButton("No", (dialog, which) -> {
 
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-
-            }
         });
         alertDlg.create().show();
     }
 
-    @RequiresApi(api = Build.VERSION_CODES.O)
+
     private void saveImageToGallery() {
 //        RelativeLayout backgroundLayout = findViewById(R.id.backgroundLayout);
 //        Bitmap bgArray[] = new Array[];
 //        BitmapConverter bitmapConverter = new BitmapConverter(bg);
         long time = System.currentTimeMillis();
         Bitmap bitmap = getBackground();
-        String filename = String.format("%d.png", time);
+        String filename = time + ".png";
+        OutputStream imageOutStream = null;
 
-        FileOutputStream outputStream = null;
-        File dir = new File(getExternalFilesDir(Environment.DIRECTORY_PICTURES), "BizQRd");
-        dir.mkdirs();
-        File outFile = new File(dir, filename);
-        try {
-            outputStream = new FileOutputStream(outFile);
-        } catch (Exception e){
-            e.printStackTrace();
-        }
-        System.out.println(bitmap);
-        System.out.println(outputStream);
-        bitmap.compress(Bitmap.CompressFormat.PNG,100, outputStream);
-        try{
-            outputStream.flush();
-        }catch (Exception e){
-            e.printStackTrace();
-        }
-        try{
-            outputStream.close();
-        }
-        catch (Exception e){
-            e.printStackTrace();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContentResolver resolver = getContentResolver();
+            ContentValues contentValues = new ContentValues();
+            contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, filename + ".jpg");
+            contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg");
+            contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES);
+            Uri imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues);
+            try {
+                imageOutStream = resolver.openOutputStream(Objects.requireNonNull(imageUri));
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
+        } else {
+            String imagesDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES).toString();
+            File image = new File(imagesDir, name + ".jpg");
+            try {
+                imageOutStream = new FileOutputStream(image);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         }
 
-        new SingleMediaScanner(MainActivity.this, outFile);
+        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, imageOutStream);
+        if (imageOutStream != null) {
+            try {
+                imageOutStream.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
     }
 
     private Bitmap getBackground() {
@@ -290,10 +310,9 @@ public class MainActivity extends AppCompatActivity {
             if (data != null) {
                 Uri uriContact = data.getData();
                 try {
-                    QRCodeGenerator qrCodeGenerator = new QRCodeGenerator(uriContact, mContext, settingsArray);
+                    QRCodeGenerator qrCodeGenerator = new QRCodeGenerator(uriContact, MainActivity.this, settingsArray);
                     Bitmap qrCode = qrCodeGenerator.generateQRCode();
                     name.setText(qrCodeGenerator.getFirstLastName());
-
                     qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
                 } catch (Exception e) {
                     e.printStackTrace();
