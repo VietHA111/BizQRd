@@ -28,6 +28,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -56,10 +57,6 @@ import static java.lang.Boolean.FALSE;
 public class MainActivity extends AppCompatActivity {
 
     int CODE_GALLERY_REQUEST = 1;
-    int CODE_PICK_CONTACT = 2;
-    int CODE_REQUEST_READ_CONTACT = 3;
-    int REQUEST_CODE_WRITE = 4;
-    int REQUEST_CODE_READ = 5;
 
     ImageButton help, settings, contacts, image, save;
     ImageView background, qrImage;
@@ -74,45 +71,20 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         settings = findViewById(R.id.settings);
-        settings.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                settingsActivity();
-            }
-        });
+        settings.setOnClickListener(v -> settingsActivity());
 
         help = findViewById(R.id.help);
-        help.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                helpActivity();
-            }
-        });
+        help.setOnClickListener(v -> helpActivity());
 
         save = findViewById(R.id.save);
-        save.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getWritePermission();
-            }
-        });
+        save.setOnClickListener(v -> getWritePermission());
 
         background = findViewById(R.id.background);
         image = findViewById(R.id.image);
-        image.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getReadPermission();
-            }
-        });
+        image.setOnClickListener(v -> getReadPermission());
 
         contacts = findViewById(R.id.contacts);
-        contacts.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                getContactPermission();
-            }
-        });
+        contacts.setOnClickListener(v -> getContactPermission());
 
         qrImage = findViewById(R.id.qrCode);
 
@@ -146,7 +118,6 @@ public class MainActivity extends AppCompatActivity {
             });
 
     private void getContactPermission() {
-
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_CONTACTS) == PERMISSION_GRANTED) {
                 readContacts();
@@ -194,17 +165,6 @@ public class MainActivity extends AppCompatActivity {
         } else createDialog();
     }
 
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 3) {
-            if (grantResults.length > 0 && grantResults[0] == PERMISSION_GRANTED) {
-                readContacts();
-            } else {
-                Toast.makeText(MainActivity.this, "The app was not allowed to read your contacts", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
 
 
     private void createDialog() {
@@ -214,9 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
         alertDlg.setPositiveButton("Yes", (dialog, which) -> saveImageToGallery());
 
-        alertDlg.setNegativeButton("No", (dialog, which) -> {
-
-        });
+        alertDlg.setNegativeButton("No", (dialog, which) -> Toast.makeText(MainActivity.this, "The app did not save your image", Toast.LENGTH_LONG).show());
         alertDlg.create().show();
     }
 
@@ -279,10 +237,6 @@ public class MainActivity extends AppCompatActivity {
         return bgImage;
     }
 
-    private void readContacts() {
-        startActivityForResult(new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI), CODE_PICK_CONTACT);
-    }
-
     private void settingsActivity() {
         Intent settingsAct = new Intent(this, SettingsActivity.class);
         startActivity(settingsAct);
@@ -293,33 +247,53 @@ public class MainActivity extends AppCompatActivity {
         startActivity(helpAct);
     }
 
-    private void chooseImage() {
-        Intent gallery = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
-        startActivityForResult(gallery, CODE_GALLERY_REQUEST);
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK)
-            if (requestCode == CODE_GALLERY_REQUEST) {
-                imageUri = data.getData();
-                background.setImageURI(imageUri);
-            }
-        if (requestCode == CODE_PICK_CONTACT) {
-            if (data != null) {
-                Uri uriContact = data.getData();
-                try {
-                    QRCodeGenerator qrCodeGenerator = new QRCodeGenerator(uriContact, MainActivity.this, settingsArray);
-                    Bitmap qrCode = qrCodeGenerator.generateQRCode();
-                    name.setText(qrCodeGenerator.getFirstLastName());
-                    qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
-                } catch (Exception e) {
-                    e.printStackTrace();
+    ActivityResultLauncher<Intent> readContactResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            Uri uriContact = data.getData();
+                            try {
+                                QRCodeGenerator qrCodeGenerator = new QRCodeGenerator(uriContact, MainActivity.this, settingsArray);
+                                Bitmap qrCode = qrCodeGenerator.generateQRCode();
+                                name.setText(qrCodeGenerator.getFirstLastName());
+                                qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    }
                 }
             }
-        }
+    );
+
+    ActivityResultLauncher<Intent> chooseImageResultLauncher = registerForActivityResult(
+            new ActivityResultContracts.StartActivityForResult(),
+            new ActivityResultCallback<ActivityResult>() {
+                @Override
+                public void onActivityResult(ActivityResult result) {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Intent data = result.getData();
+                        if (data != null) {
+                            Uri uriContact = data.getData();
+                            imageUri = data.getData();
+                            background.setImageURI(imageUri);
+                        }
+                    }
+                }
+            }
+    );
+
+    private void readContacts() {
+        Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
+        readContactResultLauncher.launch(intent);
     }
 
-
+    private void chooseImage() {
+        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+        chooseImageResultLauncher.launch(intent);
+    }
 }
