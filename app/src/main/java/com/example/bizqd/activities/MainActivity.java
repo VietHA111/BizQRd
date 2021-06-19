@@ -40,6 +40,7 @@ import androidx.core.content.ContextCompat;
 import androidx.preference.PreferenceManager;
 
 import com.example.bizqd.R;
+import com.example.bizqd.model.BitmapConverter;
 import com.example.bizqd.model.QRCodeGenerator;
 
 import java.io.File;
@@ -185,6 +186,10 @@ public class MainActivity extends AppCompatActivity {
 //        BitmapConverter bitmapConverter = new BitmapConverter(bg);
         long time = System.currentTimeMillis();
         Bitmap bitmap = getBackground();
+        if (bitmap == null) {
+            Toast.makeText(MainActivity.this, "Failed to save to gallery", Toast.LENGTH_LONG).show();
+            return;
+        }
         String filename = time + ".png";
         OutputStream imageOutStream = null;
 
@@ -218,6 +223,7 @@ public class MainActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
         }
+        Toast.makeText(MainActivity.this, "Photo saved successfully", Toast.LENGTH_LONG).show();
     }
 
     private Bitmap getBackground() {
@@ -225,14 +231,13 @@ public class MainActivity extends AppCompatActivity {
         CharSequence prevName = name.getText();
         name.setText("");
         Bitmap bgImage = Bitmap.createBitmap(backgroundLayout.getWidth(),backgroundLayout.getHeight(),Bitmap.Config.ARGB_8888);
-        Canvas canvas = new Canvas(bgImage);
-        Drawable bgDrawable = backgroundLayout.getBackground();
-        if (bgDrawable != null){
-            bgDrawable.draw(canvas);
-        }else {
-            canvas.drawColor(getResources().getColor(android.R.color.white));
+        BitmapConverter bc = new BitmapConverter(bgImage, backgroundLayout, getResources().getColor(android.R.color.white));
+        bc.start();
+        try {
+            bc.join();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        backgroundLayout.draw(canvas);
         name.setText(prevName);
         return bgImage;
     }
