@@ -1,11 +1,9 @@
-package com.example.bizqd.model;
+package com.example.BizQRd.model;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
 import android.graphics.drawable.Drawable;
 import android.widget.RelativeLayout;
-
-import com.example.bizqd.R;
 
 public class BitmapConverter extends Thread {
     Bitmap bm;
@@ -18,6 +16,7 @@ public class BitmapConverter extends Thread {
         this.color = color;
     }
 
+    @Override
     public void run() {
         Canvas canvas = new Canvas(bm);
         Drawable bgDrawable = rl.getBackground();

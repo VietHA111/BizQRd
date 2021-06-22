@@ -1,4 +1,4 @@
-package com.example.bizqd.model;
+package com.example.BizQRd.model;
 
 public class PermissionsManager {
 

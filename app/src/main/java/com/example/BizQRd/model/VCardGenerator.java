@@ -1,16 +1,9 @@
-package com.example.bizqd.model;
+package com.example.BizQRd.model;
 
 import android.content.Context;
 import android.database.Cursor;
-import android.graphics.Bitmap;
-import android.graphics.Color;
 import android.net.Uri;
 import android.provider.ContactsContract;
-
-import com.google.zxing.BarcodeFormat;
-import com.google.zxing.MultiFormatWriter;
-import com.google.zxing.WriterException;
-import com.google.zxing.common.BitMatrix;
 
 import ezvcard.Ezvcard;
 import ezvcard.VCard;

@@ -1,11 +1,11 @@
-package com.example.bizqd.activities;
+package com.example.BizQRd.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.example.bizqd.model.SettingsFragment;
+import com.example.BizQRd.model.SettingsFragment;
 
 public class SettingsActivity extends AppCompatActivity {
     public static final String KEY_NAME_PREF = "pref";

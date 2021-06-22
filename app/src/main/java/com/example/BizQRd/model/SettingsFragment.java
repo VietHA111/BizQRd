@@ -1,10 +1,10 @@
-package com.example.bizqd.model;
+package com.example.BizQRd.model;
 
 import android.os.Bundle;
 
 import androidx.preference.PreferenceFragmentCompat;
 
-import com.example.bizqd.R;
+import com.example.BizQRd.R;
 
 public class SettingsFragment extends PreferenceFragmentCompat {
 
