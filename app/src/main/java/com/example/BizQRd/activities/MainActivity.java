@@ -14,7 +14,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
-import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RelativeLayout;
@@ -46,8 +45,6 @@ import static java.lang.Boolean.FALSE;
 
 
 public class MainActivity extends AppCompatActivity {
-
-    int CODE_GALLERY_REQUEST = 1;
 
     ImageButton help, settings, contacts, image, save;
     ImageView background, qrImage;
@@ -99,7 +96,7 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private ActivityResultLauncher<String> contactRequestPermissionLauncher =
+    private final ActivityResultLauncher<String> contactRequestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
                     readContacts();
@@ -118,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
         } else readContacts();
     }
 
-    private ActivityResultLauncher<String> readRequestPermissionLauncher =
+    private final ActivityResultLauncher<String> readRequestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
                     chooseImage();
@@ -137,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         } else chooseImage();
     }
 
-    private ActivityResultLauncher<String> writeRequestPermissionLauncher =
+    private final ActivityResultLauncher<String> writeRequestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
                     createDialog();
@@ -242,7 +239,7 @@ public class MainActivity extends AppCompatActivity {
         startActivity(helpAct);
     }
 
-    ActivityResultLauncher<Intent> readContactResultLauncher = registerForActivityResult(
+    final ActivityResultLauncher<Intent> readContactResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
                 @Override
@@ -265,7 +262,7 @@ public class MainActivity extends AppCompatActivity {
             }
     );
 
-    ActivityResultLauncher<Intent> chooseImageResultLauncher = registerForActivityResult(
+    final ActivityResultLauncher<Intent> chooseImageResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
                 @Override

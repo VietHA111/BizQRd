@@ -1,5 +1,4 @@
 <resources>
-    <string name="app_name">BizQD</string>
     <string name="help">Help</string>
     <string name="bizqrd">BizQRd</string>
     <string name="set_contact_information">Set Contact Information</string>
@@ -8,43 +7,15 @@
     <string name="download">Download</string>
     <string name="qrcode">qrcode</string>
     <string name="background">background</string>
-    <string name="cancel_settings">cancel settings</string>
-    <string name="cancel">Cancel</string>
-    <string name="settings">Settings</string>
-    <string name="settings_title">settings title</string>
-    <string name="complete_settings">complete settings</string>
-    <string name="done">Done</string>
-    <string name="select_the_contact_information_that_you_wish_to_include_in_your_qr_code">Select the contact information that you wish to include in your QR code.</string>
-    <string name="name_prefix">Name Prefix</string>
-    <string name="given_name">Given Name</string>
-    <string name="middle_name">Middle Name</string>
-    <string name="family_name">Family Name</string>
-    <string name="previous_family_name">Previous Family Name</string>
-    <string name="name_suffix">Name Suffix</string>
-    <string name="nickname">Nickname</string>
-    <string name="organization">Organization</string>
-    <string name="department">Department</string>
-    <string name="job_title">Job Title</string>
-    <string name="postal_addresses">Postal Addresses</string>
     <!-- Preference Titles -->
-    <string name="messages_header">Messages</string>
-    <string name="sync_header">Sync</string>
 
     <!-- Messages Preferences -->
-    <string name="signature_title">Your signature</string>
-    <string name="reply_title">Default reply action</string>
 
     <!-- Sync Preferences -->
-    <string name="sync_title">Sync email periodically</string>
-    <string name="attachment_title">Download incoming attachments</string>
-    <string name="attachment_summary_on">Automatically download attachments for incoming emails
-    </string>
-    <string name="attachment_summary_off">Only download attachments when manually requested</string>
     <string name="NamePrefix">Name Prefix</string>
     <string name="GivenName">Given Name</string>
     <string name="MiddleName">Middle Name</string>
     <string name="FamilyName">Family Name</string>
-    <string name="PreviousFamilyName">Previous Family Name</string>
     <string name="NameSuffix">Name Suffix</string>
     <string name="Nickname">Nickname</string>
     <string name="Organization">Organization</string>
@@ -52,16 +23,14 @@
     <string name="JobTitle">Job Title</string>
     <string name="PostalAddresses">Postal Addresses</string>
     <string name="Notes">Notes</string>
-    <string name="something">something</string>
     <string name="BizQRd">BizQRd</string>
-    <string name="textview">TextView</string>
     <string name="welcome_to_biqrd">Welcome to BiQRd!</string>
-    <string name="Intro">BizQRd is the world\'s premier app for sharing your contact information with others using an easy to create QR code that can be scanned by either iPhone, iPad, or Android device.</string>
+    <string name="Intro"><b>BizQRd</b> is the world\'s premier app for sharing your contact information with others using an easy to create <b>QR code</b> that can be scanned by either <b>iPhone</b>, <b>iPad</b>, or <b>Android</b> device.</string>
     <string name="Step_intro">To create your personal QR code, follow these simple steps:</string>
-    <string name="Step1">1) Click on the Gearsicon in the right corner of the navigation bar to open the Settings view. In this view, you choose how much or how little info you want to share in your QR code. Anything in this list that has a check mark beside it will be included in the QR code, so long as you have provided that info on your Contact card.</string>
-    <string name="Step2">2) Choose the contact that you want to share from your list of Contacts by tapping the first icon in the tab bar. This is usually your own personal Contact card, but it doesn\'t have to be.</string>
-    <string name="Step3">3) Next, you need to choose the image that will provide the background for your QR code. Tap the second icon in the tab bar to choose a picture from your collection of photos. Images with faces can confuse the scanner, so try and avoid those…</string>
-    <string name="Step4">4) When you are satisfied with your QR code and have picked your background image, tap the third button in the tab bar to save your creation in your Photos collection.</string>
+    <string name="Step1"><b>1)</b> Click on the <b>"Gears"</b> icon in the right corner of the navigation bar to open the <b>Settings</b> view. In this view, you choose how much or how little info you want to share in your QR code. Anything in this list that has a check mark beside it will be included in the QR code, so long as you have provided that info on your Contact card.</string>
+    <string name="Step2"><b>2)</b> Choose the contact that you want to share from your list of <b>Contacts</b> by tapping the first icon in the tab bar. This is usually your own personal Contact card, but it doesn\'t have to be.</string>
+    <string name="Step3"><b>3)</b> Next, you need to choose the image that will provide the background for your QR code. Tap the second icon in the tab bar to choose a picture from your collection of photos. Images with faces can confuse the scanner, so try and avoid those…</string>
+    <string name="Step4"><b>4)</b> When you are satisfied with your QR code and have picked your background image, tap the third button in the tab bar to save your creation in your <b>Photos</b> collection.</string>
     <string name="privacy_policy">Privacy Policy</string>
     <string name="support">Support</string>
 </resources>

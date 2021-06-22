@@ -6,9 +6,9 @@ import android.graphics.drawable.Drawable;
 import android.widget.RelativeLayout;
 
 public class BitmapConverter extends Thread {
-    Bitmap bm;
-    RelativeLayout rl;
-    int color;
+    final Bitmap bm;
+    final RelativeLayout rl;
+    final int color;
 
     public BitmapConverter(Bitmap bm, RelativeLayout rl, int color) {
         this.bm = bm;

@@ -11,7 +11,7 @@ import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
 public class QRCodeGenerator {
-    VCardGenerator vCardGenerator;
+    final VCardGenerator vCardGenerator;
 
     public QRCodeGenerator(Uri uriContact, Context mContext, boolean[] settings) {
         this.vCardGenerator = new VCardGenerator(uriContact, mContext, settings);
