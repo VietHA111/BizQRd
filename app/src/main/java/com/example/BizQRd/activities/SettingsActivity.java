@@ -13,6 +13,7 @@ public class SettingsActivity extends AppCompatActivity {
     public static final String KEY_NAME_MIDDLE = "middle";
     public static final String KEY_NAME_FAMILY = "family";
     public static final String KEY_NAME_SUFF = "suff";
+    public static final String KEY_EMAIL = "email";
     public static final String KEY_NICKNAME = "nick";
     public static final String KEY_ORG = "org";
     public static final String KEY_DEPT = "dept";

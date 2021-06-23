@@ -26,11 +26,10 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
-import androidx.preference.PreferenceManager;
 
 import com.example.BizQRd.R;
 import com.example.BizQRd.model.BitmapConverter;
-import com.example.BizQRd.model.QRCodeGenerator;
+import com.example.BizQRd.model.Contact;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,7 +40,6 @@ import java.util.Objects;
 
 import static android.content.pm.PackageManager.PERMISSION_GRANTED;
 import static androidx.preference.PreferenceManager.setDefaultValues;
-import static java.lang.Boolean.FALSE;
 
 
 public class MainActivity extends AppCompatActivity {
@@ -50,7 +48,6 @@ public class MainActivity extends AppCompatActivity {
     ImageView background, qrImage;
     TextView name;
     Uri imageUri;
-    boolean[] settingsArray;
 
 
     @Override
@@ -79,21 +76,6 @@ public class MainActivity extends AppCompatActivity {
         name = findViewById(R.id.name);
 
         setDefaultValues(this, R.xml.preferences, false);
-
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        settingsArray = new boolean[11];
-        settingsArray[0] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_PREF, FALSE);
-        settingsArray[1] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_GIVEN, FALSE);
-        settingsArray[2] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_MIDDLE, FALSE);
-        settingsArray[3] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_FAMILY, FALSE);
-        settingsArray[4] = sharedPref.getBoolean(SettingsActivity.KEY_NAME_SUFF, FALSE);
-        settingsArray[5] = sharedPref.getBoolean(SettingsActivity.KEY_NICKNAME, FALSE);
-        settingsArray[6] = sharedPref.getBoolean(SettingsActivity.KEY_ORG, FALSE);
-        settingsArray[7] = sharedPref.getBoolean(SettingsActivity.KEY_DEPT, FALSE);
-        settingsArray[8] = sharedPref.getBoolean(SettingsActivity.KEY_JOB, FALSE);
-        settingsArray[9] = sharedPref.getBoolean(SettingsActivity.KEY_POSTAL, FALSE);
-        settingsArray[10] = sharedPref.getBoolean(SettingsActivity.KEY_NOTES, FALSE);
-
     }
 
     private final ActivityResultLauncher<String> contactRequestPermissionLauncher =
@@ -249,9 +231,9 @@ public class MainActivity extends AppCompatActivity {
                         if (data != null) {
                             Uri uriContact = data.getData();
                             try {
-                                QRCodeGenerator qrCodeGenerator = new QRCodeGenerator(uriContact, MainActivity.this, settingsArray);
-                                Bitmap qrCode = qrCodeGenerator.generateQRCode();
-                                name.setText(qrCodeGenerator.getFirstLastName());
+                                Contact contact = new Contact(uriContact, MainActivity.this);
+                                Bitmap qrCode = contact.generateQRCode();
+                                name.setText(contact.getFirstLastName());
                                 qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
                             } catch (Exception e) {
                                 e.printStackTrace();
