@@ -1,9 +1,14 @@
 package com.example.BizQRd.model;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.provider.ContactsContract;
+
+import androidx.preference.PreferenceManager;
+
+import com.example.BizQRd.activities.SettingsActivity;
 
 import ezvcard.Ezvcard;
 import ezvcard.VCard;
@@ -15,8 +20,11 @@ import ezvcard.property.Nickname;
 import ezvcard.property.Organization;
 import ezvcard.property.StructuredName;
 
+import static java.lang.Boolean.FALSE;
+
 public class VCardGenerator {
     private static final String SELECTION = ContactsContract.Data.LOOKUP_KEY + " = ?" + " AND " + ContactsContract.Data.MIMETYPE + " = ?";
+    SharedPreferences sharedPref;
 
     private String firstLastName;
     private final Uri uriContact;
@@ -28,6 +36,7 @@ public class VCardGenerator {
         this.uriContact = uriContact;
         this.mContext = mContext;
         this.settings = settings;
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(mContext);
     }
 
     public String getFirstLastName() {
@@ -44,7 +53,7 @@ public class VCardGenerator {
         getLookupKey();
         VCard vCard = new VCard();
 
-        if (settings[9]) {
+        if (sharedPref.getBoolean(SettingsActivity.KEY_POSTAL, FALSE)) {
             setPostalAddress(vCard);
         }
 
@@ -54,13 +63,13 @@ public class VCardGenerator {
 
         vCard.setStructuredName(name);
 
-        if (settings[5]) {
+        if (sharedPref.getBoolean(SettingsActivity.KEY_POSTAL, FALSE)) {
             getNickname(vCard);
         }
 
         setJobInfo(vCard);
 
-        if (settings[10]) {
+        if (sharedPref.getBoolean(SettingsActivity.KEY_POSTAL, FALSE)) {
             setNotes(vCard);
         }
 
@@ -88,33 +97,33 @@ public class VCardGenerator {
         String lastName = "";
 
         if (nameCur.moveToFirst()) {
-            if (settings[3]) {
+            if (sharedPref.getBoolean(SettingsActivity.KEY_NAME_FAMILY, FALSE)) {
                 String fam = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.FAMILY_NAME));
                 if (fam != null) {
                     n.setFamily(fam);
                     lastName = fam;
                 }
             }
-            if (settings[1]) {
+            if (sharedPref.getBoolean(SettingsActivity.KEY_NAME_GIVEN, FALSE)) {
                 String giv = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.GIVEN_NAME));
                 if (giv != null) {
                     n.setGiven(giv);
                     firstName = giv;
                 }
             }
-            if (settings[2]) {
+            if (sharedPref.getBoolean(SettingsActivity.KEY_NAME_MIDDLE, FALSE)) {
                 String mid = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.MIDDLE_NAME));
                 if (mid != null) {
                     n.getAdditionalNames().add(mid);
                 }
             }
-            if (settings[0]) {
+            if (sharedPref.getBoolean(SettingsActivity.KEY_NAME_PREF, FALSE)) {
                 String pref = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.PREFIX));
                 if (pref != null) {
                     n.getPrefixes().add(pref);
                 }
             }
-            if (settings[4]) {
+            if (sharedPref.getBoolean(SettingsActivity.KEY_NAME_SUFF, FALSE)) {
                 String suf = nameCur.getString(nameCur.getColumnIndex(ContactsContract.CommonDataKinds.StructuredName.SUFFIX));
                 if (suf != null) {
                     n.getSuffixes().add(suf);
@@ -147,20 +156,20 @@ public class VCardGenerator {
         Cursor jobCur = mContext.getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, SELECTION, jobSelectionArgs, null);
         if (jobCur.moveToFirst()) {
             Organization org = new Organization();
-            if (settings[6]) {
+            if (sharedPref.getBoolean(SettingsActivity.KEY_ORG, FALSE)) {
                 String company = jobCur.getString(jobCur.getColumnIndex(ContactsContract.CommonDataKinds.Organization.COMPANY));
                 if (company != null) {
                     org.getValues().add(company);
                 }
             }
-            if (settings[7]) {
+            if (sharedPref.getBoolean(SettingsActivity.KEY_DEPT, FALSE)) {
                 String dep = jobCur.getString(jobCur.getColumnIndex(ContactsContract.CommonDataKinds.Organization.DEPARTMENT));
                 if (dep != null) {
                     org.getValues().add(dep);
                 }
             }
             v.setOrganization(org);
-            if (settings[8]) {
+            if (sharedPref.getBoolean(SettingsActivity.KEY_JOB, FALSE)) {
                 String job = jobCur.getString(jobCur.getColumnIndex(ContactsContract.CommonDataKinds.Organization.TITLE));
                 if (job != null) {
                     v.addTitle(job);

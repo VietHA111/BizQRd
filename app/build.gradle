@@ -10,7 +10,7 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.bizqd"
+        applicationId 'com.example.bizqrd'
         minSdkVersion 16
         targetSdkVersion 30
         versionCode 1

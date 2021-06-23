@@ -27,7 +27,7 @@
             android:padding="5dp"
             android:text="@string/Intro"
             android:textColor="@android:color/background_dark"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size" />
 
         <TextView
             android:layout_width="match_parent"
@@ -35,7 +35,7 @@
             android:padding="5dp"
             android:text="@string/Step_intro"
             android:textColor="@android:color/background_dark"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size" />
 
         <TextView
             android:layout_width="match_parent"
@@ -43,7 +43,7 @@
             android:padding="5dp"
             android:text="@string/Step1"
             android:textColor="@android:color/background_dark"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size" />
 
         <TextView
             android:layout_width="match_parent"
@@ -51,7 +51,7 @@
             android:padding="5dp"
             android:text="@string/Step2"
             android:textColor="@android:color/background_dark"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size" />
 
         <TextView
             android:layout_width="match_parent"
@@ -59,7 +59,7 @@
             android:padding="5dp"
             android:text="@string/Step3"
             android:textColor="@android:color/background_dark"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size" />
 
         <TextView
             android:layout_width="match_parent"
@@ -67,7 +67,7 @@
             android:padding="5dp"
             android:text="@string/Step4"
             android:textColor="@android:color/background_dark"
-            android:textSize="16sp" />
+            android:textSize="@dimen/text_size" />
 
         <LinearLayout
             android:layout_width="match_parent"
