@@ -131,6 +131,17 @@ public class Contact {
         return nameInfoMap;
     }
 
+    protected String getEmail() {
+        String email = null;
+        String[] emailSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE};
+        Cursor emailCursor = mContext.getContentResolver().query(ContactsContract.Data.CONTENT_URI, null, SELECTION, emailSelectionArgs, null);
+        if (emailCursor.moveToFirst()) {
+            email = emailCursor.getString(emailCursor.getColumnIndex(ContactsContract.CommonDataKinds.Email.ADDRESS));
+        }
+        emailCursor.close();
+        return email;
+    }
+
     protected Nickname getNickname() {
         Nickname n = new Nickname();
         String[] nickSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.Nickname.CONTENT_ITEM_TYPE};

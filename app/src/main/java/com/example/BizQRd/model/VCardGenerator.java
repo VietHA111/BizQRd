@@ -67,6 +67,10 @@ public class VCardGenerator {
             setNotes(vCard);
         }
 
+        if (sharedPref.getBoolean(SettingsActivity.KEY_EMAIL, FALSE)) {
+            setEmail(vCard);
+        }
+
         return vCard;
     }
 
@@ -124,19 +128,22 @@ public class VCardGenerator {
         Map<String, String> jobInfoMap = contact.getJobInfo();
 
         Organization org = new Organization();
-        if (sharedPref.getBoolean(SettingsActivity.KEY_ORG, FALSE)) {
-            if (jobInfoMap.containsKey(Contact.KEY_ORG)) {
-                org.getValues().add(jobInfoMap.get(Contact.KEY_ORG));
-            }
-        }
 
-        if (sharedPref.getBoolean(SettingsActivity.KEY_DEPT, FALSE)) {
-            if (jobInfoMap.containsKey(Contact.KEY_DEPT)) {
-                org.getValues().add(jobInfoMap.get(Contact.KEY_DEPT));
+        if (sharedPref.getBoolean(SettingsActivity.KEY_ORG, FALSE) || sharedPref.getBoolean(SettingsActivity.KEY_DEPT, FALSE)) {
+            if (sharedPref.getBoolean(SettingsActivity.KEY_ORG, FALSE)) {
+                if (jobInfoMap.containsKey(Contact.KEY_ORG)) {
+                    org.getValues().add(jobInfoMap.get(Contact.KEY_ORG));
+                }
             }
-        }
 
-        v.setOrganization(org);
+            if (sharedPref.getBoolean(SettingsActivity.KEY_DEPT, FALSE)) {
+                if (jobInfoMap.containsKey(Contact.KEY_DEPT)) {
+                    org.getValues().add(jobInfoMap.get(Contact.KEY_DEPT));
+                }
+            }
+
+            v.setOrganization(org);
+        }
 
         if (sharedPref.getBoolean(SettingsActivity.KEY_JOB, FALSE)) {
             if (jobInfoMap.containsKey(Contact.KEY_TITLE)) {
@@ -160,5 +167,10 @@ public class VCardGenerator {
         }
     }
 
-
+    private void setEmail(VCard vCard) {
+        String email = contact.getEmail();
+        if (email != null) {
+            vCard.addEmail(email);
+        }
+    }
 }
