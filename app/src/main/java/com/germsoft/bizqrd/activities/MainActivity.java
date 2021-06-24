@@ -207,6 +207,7 @@ public class MainActivity extends AppCompatActivity {
                                 qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
                             } catch (Exception e) {
                                 e.printStackTrace();
+                                Toast.makeText(MainActivity.this, "Failed to retrieve contact info", Toast.LENGTH_LONG).show();
                             }
                         }
                     }

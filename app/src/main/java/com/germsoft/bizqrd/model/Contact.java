@@ -35,7 +35,7 @@ public class Contact {
     private final VCardGenerator vcg;
     private String lookupKey;
 
-    public Contact(Uri uriContact, Context mContext) {
+    public Contact(Uri uriContact, Context mContext) throws Exception {
         this.uriContact = uriContact;
         this.mContext = mContext;
         vcg = new VCardGenerator(this, mContext);
@@ -69,8 +69,10 @@ public class Contact {
         while (phoneCur.moveToNext()) {
             String contactNumber = phoneCur.getString(phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER));
             TelephoneType numberType = convertIntToTelephone(phoneCur.getInt(phoneCur.getColumnIndex(ContactsContract.CommonDataKinds.Phone.TYPE)));
-            Pair<String, TelephoneType> phoneNumber = new Pair<>(contactNumber, numberType);
-            phoneNumbers.add(phoneNumber);
+            if (contactNumber != null) {
+                Pair<String, TelephoneType> phoneNumber = new Pair<>(contactNumber, numberType);
+                phoneNumbers.add(phoneNumber);
+            }
         }
         phoneCur.close();
         return phoneNumbers;
@@ -117,6 +119,7 @@ public class Contact {
     }
 
     //EFFECTS: return a String of contact's email
+    //NOTE: caller needs to check if email is null
     protected String getEmail() {
         String email = null;
         String[] emailSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.Email.CONTENT_ITEM_TYPE};
@@ -170,7 +173,8 @@ public class Contact {
         return jobInfoMap;
     }
 
-    //EFFECTS: return String of contact's notes field
+    //EFFECTS: return String of contact's notes
+    //NOTE: caller needs to check if notes is null
     protected String getNotes() {
         String [] notesSelectionArgs = new String[]{lookupKey, ContactsContract.CommonDataKinds.Note.CONTENT_ITEM_TYPE};
         String notes = null;
@@ -224,13 +228,16 @@ public class Contact {
 
     //MODIFIES: this
     //EFFECTS: retrieves the contact lookup key to query
-    private void getLookupKey() {
+    private void getLookupKey() throws Exception {
         Cursor cursor = mContext.getContentResolver().query(uriContact,
                 new String[]{ContactsContract.Contacts.LOOKUP_KEY},
                 null, null, null);
         if (cursor.moveToFirst()) {
             lookupKey = cursor.getString(cursor.getColumnIndex(
                     ContactsContract.Contacts.LOOKUP_KEY));
+        }
+        if (lookupKey == null) {
+            throw new Exception("No lookup key");
         }
         cursor.close();
     }
