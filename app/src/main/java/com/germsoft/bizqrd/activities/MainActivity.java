@@ -61,11 +61,11 @@ public class MainActivity extends AppCompatActivity {
         help.setOnClickListener(v -> helpActivity());
 
         save = findViewById(R.id.save);
-        save.setOnClickListener(v -> getWritePermission());
+        save.setOnClickListener(v -> createDialog());
 
         background = findViewById(R.id.background);
         image = findViewById(R.id.image);
-        image.setOnClickListener(v -> getReadPermission());
+        image.setOnClickListener(v -> chooseImage());
 
         contacts = findViewById(R.id.contacts);
         contacts.setOnClickListener(v -> getContactPermission());
@@ -98,48 +98,6 @@ public class MainActivity extends AppCompatActivity {
                 contactRequestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS);
             }
         } else readContacts();
-    }
-
-    //EFFECTS: if read external storage permission is granted, choose image,
-    //         else show Toast
-    private final ActivityResultLauncher<String> readRequestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    chooseImage();
-                } else {
-                    Toast.makeText(MainActivity.this, "The app was not allowed to view your images", Toast.LENGTH_LONG).show();
-                }
-            });
-
-    //EFFECTS: ask for read external storage permission,
-    //         if already granted, choose image
-    private void getReadPermission() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED) {
-                chooseImage();
-            } else {
-                readRequestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
-            }
-        } else chooseImage();
-    }
-
-    private final ActivityResultLauncher<String> writeRequestPermissionLauncher =
-            registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
-                if (isGranted) {
-                    createDialog();
-                } else {
-                    Toast.makeText(MainActivity.this, "The app was not allowed to save your image", Toast.LENGTH_LONG).show();
-                }
-            });
-
-    private void getWritePermission() {
-        if (Build.VERSION.SDK_INT >= 23) {
-            if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED) {
-                createDialog();
-            } else {
-                writeRequestPermissionLauncher.launch(Manifest.permission.READ_EXTERNAL_STORAGE);
-            }
-        } else createDialog();
     }
 
     private void createDialog() {
