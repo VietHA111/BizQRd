@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.BizQRd">
+    package="com.germsoft.bizqrd">
 
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.READ_CONTACTS" />
@@ -14,21 +14,21 @@
         android:theme="@style/AppTheme"
         android:fullBackupContent="@xml/backup_descriptor">
 
-        <activity android:name="com.example.BizQRd.activities.SettingsActivity"
+        <activity android:name="com.germsoft.bizqrd.activities.SettingsActivity"
             android:label="Settings"
-            android:parentActivityName=".activities.MainActivity">
+            android:parentActivityName="com.germsoft.bizqrd.activities.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.example.BizQRd.activities.MainActivity"/>
+                android:value="com.germsoft.bizqrd.activities.MainActivity"/>
         </activity>
-        <activity android:name="com.example.BizQRd.activities.HelpActivity"
+        <activity android:name="com.germsoft.bizqrd.activities.HelpActivity"
             android:label="Help"
-            android:parentActivityName=".activities.MainActivity">
+            android:parentActivityName="com.germsoft.bizqrd.activities.MainActivity">
         <meta-data
             android:name="android.support.PARENT_ACTIVITY"
-            android:value="com.example.BizQRd.activities.MainActivity"/>
+            android:value="com.germsoft.bizqrd.activities.MainActivity"/>
         </activity>
-        <activity android:name="com.example.BizQRd.activities.MainActivity"
+        <activity android:name="com.germsoft.bizqrd.activities.MainActivity"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

@@ -5,7 +5,7 @@
     <string name="choose_contact">Choose Contact</string>
     <string name="choose_image">Choose Image</string>
     <string name="download">Download</string>
-    <string name="qrcode">qrcode</string>
+    <string name="QRCode">qrcode</string>
     <string name="background">background</string>
     <!-- Preference Titles -->
 
@@ -24,7 +24,7 @@
     <string name="PostalAddresses">Postal Addresses</string>
     <string name="Notes">Notes</string>
     <string name="BizQRd">BizQRd</string>
-    <string name="welcome_to_biqrd">Welcome to BizQRd!</string>
+    <string name="welcome_to_bizqrd">Welcome to BizQRd!</string>
     <string name="Intro"><b>BizQRd</b> is the world\'s premier app for sharing your contact information with others using an easy to create <b>QR code</b> that can be scanned by either <b>iPhone</b>, <b>iPad</b>, or <b>Android</b> device.</string>
     <string name="Step_intro">To create your personal QR code, follow these simple steps:</string>
     <string name="Step1"><b>1)</b> Click on the <b>"Gears"</b> icon in the right corner of the navigation bar to open the <b>Settings</b> view. In this view, you choose how much or how little info you want to share in your QR code. Anything in this list that is checked will be included in the QR code, so long as you have provided that info on your Contact card.</string>

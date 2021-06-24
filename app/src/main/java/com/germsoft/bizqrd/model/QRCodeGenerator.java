@@ -1,9 +1,7 @@
-package com.example.BizQRd.model;
+package com.germsoft.bizqrd.model;
 
-import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.Color;
-import android.net.Uri;
 
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
@@ -12,9 +10,7 @@ import com.google.zxing.common.BitMatrix;
 
 public class QRCodeGenerator {
 
-    public QRCodeGenerator() {
-    }
-
+    //EFFECTS: create bitmap of contact's QR code
     public static Bitmap generateQRCode(String vCard) throws Exception {
 
         MultiFormatWriter multiFormatWriter = new MultiFormatWriter();

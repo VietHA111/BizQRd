@@ -10,18 +10,18 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.bizqd"
+        applicationId "com.germsoft.bizqrd"
         minSdkVersion 16
         targetSdkVersion 30
-        versionCode 1
-        versionName "1.0"
+        versionCode 3
+        versionName '1.0'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -34,12 +34,16 @@ dependencies {
     implementation "androidx.activity:activity:1.2.3"
     implementation 'com.google.zxing:core:3.4.1'
     implementation 'com.googlecode.ez-vcard:ez-vcard:0.11.2'
-    implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'androidx.preference:preference:1.1.1'
 }
-
 
 repositories {
     jcenter()
     maven { url "https://jitpack.io" }
+}
+
+allprojects {
+    tasks.withType(JavaCompile) {
+        options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+    }
 }

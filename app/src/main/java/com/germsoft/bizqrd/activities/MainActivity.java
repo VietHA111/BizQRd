@@ -1,4 +1,4 @@
-package com.example.BizQRd.activities;
+package com.germsoft.bizqrd.activities;
 
 import android.Manifest;
 import android.app.Activity;
@@ -6,7 +6,6 @@ import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
@@ -27,9 +26,9 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import com.example.BizQRd.R;
-import com.example.BizQRd.model.BitmapConverter;
-import com.example.BizQRd.model.Contact;
+import com.germsoft.bizqrd.R;
+import com.germsoft.bizqrd.model.BitmapConverter;
+import com.germsoft.bizqrd.model.Contact;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -78,6 +77,8 @@ public class MainActivity extends AppCompatActivity {
         setDefaultValues(this, R.xml.preferences, false);
     }
 
+    //EFFECTS: if read contacts permission is granted, read contacts,
+    //         else show Toast
     private final ActivityResultLauncher<String> contactRequestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -87,6 +88,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+    //EFFECTS: ask for read contacts permission,
+    //         if already granted, read contacts
     private void getContactPermission() {
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_CONTACTS) == PERMISSION_GRANTED) {
@@ -97,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
         } else readContacts();
     }
 
+    //EFFECTS: if read external storage permission is granted, choose image,
+    //         else show Toast
     private final ActivityResultLauncher<String> readRequestPermissionLauncher =
             registerForActivityResult(new ActivityResultContracts.RequestPermission(), isGranted -> {
                 if (isGranted) {
@@ -106,6 +111,8 @@ public class MainActivity extends AppCompatActivity {
                 }
             });
 
+    //EFFECTS: ask for read external storage permission,
+    //         if already granted, choose image
     private void getReadPermission() {
         if (Build.VERSION.SDK_INT >= 23) {
             if (ContextCompat.checkSelfPermission(MainActivity.this, Manifest.permission.READ_EXTERNAL_STORAGE) == PERMISSION_GRANTED) {
@@ -135,8 +142,6 @@ public class MainActivity extends AppCompatActivity {
         } else createDialog();
     }
 
-
-
     private void createDialog() {
         AlertDialog.Builder alertDlg = new AlertDialog.Builder(this);
         alertDlg.setMessage("Would you like to save this image?");
@@ -147,7 +152,6 @@ public class MainActivity extends AppCompatActivity {
         alertDlg.setNegativeButton("No", (dialog, which) -> Toast.makeText(MainActivity.this, "The app did not save your image", Toast.LENGTH_LONG).show());
         alertDlg.create().show();
     }
-
 
     private void saveImageToGallery() {
 //        RelativeLayout backgroundLayout = findViewById(R.id.backgroundLayout);
@@ -200,7 +204,7 @@ public class MainActivity extends AppCompatActivity {
         CharSequence prevName = name.getText();
         name.setText("");
         Bitmap bgImage = Bitmap.createBitmap(backgroundLayout.getWidth(),backgroundLayout.getHeight(),Bitmap.Config.ARGB_8888);
-        BitmapConverter bc = new BitmapConverter(bgImage, backgroundLayout, getResources().getColor(android.R.color.white));
+        BitmapConverter bc = new BitmapConverter(bgImage, backgroundLayout, ContextCompat.getColor(this, R.color.white));
         bc.start();
         try {
             bc.join();
