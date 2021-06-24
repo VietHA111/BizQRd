@@ -30,11 +30,13 @@ public class HelpActivity extends AppCompatActivity {
         startActivity(new Intent(this, MainActivity.class));
     }
 
+    //EFFECTS: open app website
     private void openSite() {
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("http://bizqrd.app"));
         startActivity(browserIntent);
     }
 
+    //EFFECTS: open support tab of app website
     private void openSupport() {
         Intent browserIntent = new Intent(Intent.ACTION_VIEW, Uri.parse("https://bizqrd.app/contact-form/"));
         startActivity(browserIntent);

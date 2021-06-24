@@ -100,6 +100,8 @@ public class MainActivity extends AppCompatActivity {
         } else readContacts();
     }
 
+    //EFFECTS: ask user if they would like to save the image,
+    //         show Toast reflecting user's decision and the outcome
     private void createDialog() {
         AlertDialog.Builder alertDlg = new AlertDialog.Builder(this);
         alertDlg.setMessage("Would you like to save this image?");
@@ -111,6 +113,8 @@ public class MainActivity extends AppCompatActivity {
         alertDlg.create().show();
     }
 
+    //EFFECTS: save image to gallery,
+    //         show Toast reflecting method outcome
     private void saveImageToGallery() {
 //        RelativeLayout backgroundLayout = findViewById(R.id.backgroundLayout);
 //        Bitmap bgArray[] = new Array[];
@@ -157,6 +161,7 @@ public class MainActivity extends AppCompatActivity {
         Toast.makeText(MainActivity.this, "Photo saved successfully", Toast.LENGTH_LONG).show();
     }
 
+    //EFFECTS: return bitmap of background image
     private Bitmap getBackground() {
         RelativeLayout backgroundLayout = findViewById(R.id.backgroundLayout);
         CharSequence prevName = name.getText();
@@ -173,16 +178,19 @@ public class MainActivity extends AppCompatActivity {
         return bgImage;
     }
 
+    //EFFECTS: go to SettingsActivity
     private void settingsActivity() {
         Intent settingsAct = new Intent(this, SettingsActivity.class);
         startActivity(settingsAct);
     }
 
+    //EFFECTS: go to HelpActivity
     private void helpActivity() {
         Intent helpAct = new Intent(this, HelpActivity.class);
         startActivity(helpAct);
     }
 
+    //EFFECTS: create QR code for picked contact and display
     final ActivityResultLauncher<Intent> readContactResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -206,6 +214,7 @@ public class MainActivity extends AppCompatActivity {
             }
     );
 
+    //EFFECTS: set background as chosen image
     final ActivityResultLauncher<Intent> chooseImageResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
             new ActivityResultCallback<ActivityResult>() {
@@ -222,11 +231,15 @@ public class MainActivity extends AppCompatActivity {
             }
     );
 
+    //EFFECTS: let user pick a contact from contacts list,
+    //         launch readContactResultLauncher
     private void readContacts() {
         Intent intent = new Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI);
         readContactResultLauncher.launch(intent);
     }
 
+    //EFFECTS: let user pick an image from gallery,
+    //         launch chooseImageResultLauncher
     private void chooseImage() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
         chooseImageResultLauncher.launch(intent);
