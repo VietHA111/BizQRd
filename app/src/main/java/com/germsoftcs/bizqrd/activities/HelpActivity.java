@@ -1,4 +1,4 @@
-package com.germsoft.bizqrd.activities;
+package com.germsoftcs.bizqrd.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -7,7 +7,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.widget.Button;
 
-import com.germsoft.bizqrd.R;
+import com.germsoftcs.bizqrd.R;
 
 public class HelpActivity extends AppCompatActivity {
 

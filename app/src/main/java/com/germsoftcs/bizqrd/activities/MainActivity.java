@@ -1,4 +1,4 @@
-package com.germsoft.bizqrd.activities;
+package com.germsoftcs.bizqrd.activities;
 
 import android.Manifest;
 import android.app.Activity;
@@ -11,6 +11,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.PersistableBundle;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.widget.ImageButton;
@@ -23,12 +24,13 @@ import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.content.ContextCompat;
 
-import com.germsoft.bizqrd.R;
-import com.germsoft.bizqrd.model.BitmapConverter;
-import com.germsoft.bizqrd.model.Contact;
+import com.germsoftcs.bizqrd.model.BitmapConverter;
+import com.germsoftcs.bizqrd.R;
+import com.germsoftcs.bizqrd.model.Contact;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -43,10 +45,14 @@ import static androidx.preference.PreferenceManager.setDefaultValues;
 
 public class MainActivity extends AppCompatActivity {
 
-    ImageButton help, settings, contacts, image, save;
-    ImageView background, qrImage;
-    TextView name;
-    Uri imageUri;
+    private static final String TAG = "MainActivityTag";
+    private static Uri contactUri;
+    private static Uri imageUri;
+
+    private Contact contact;
+    private ImageButton help, settings, contacts, image, save;
+    private ImageView background, qrImage;
+    private TextView name;
 
 
     @Override
@@ -73,6 +79,19 @@ public class MainActivity extends AppCompatActivity {
         qrImage = findViewById(R.id.qrCode);
 
         name = findViewById(R.id.name);
+
+        if (contactUri != null) {
+            try {
+                contact = new Contact(contactUri, MainActivity.this);
+                createQRCode();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        if (imageUri != null) {
+            background.setImageURI(imageUri);
+        }
 
         setDefaultValues(this, R.xml.preferences, false);
     }
@@ -190,6 +209,13 @@ public class MainActivity extends AppCompatActivity {
         startActivity(helpAct);
     }
 
+    //EFFECTS: create QR code
+    private void createQRCode() throws Exception {
+        Bitmap qrCode = contact.generateQRCode();
+        name.setText(contact.getFirstLastName());
+        qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
+    }
+
     //EFFECTS: create QR code for picked contact and display
     final ActivityResultLauncher<Intent> readContactResultLauncher = registerForActivityResult(
             new ActivityResultContracts.StartActivityForResult(),
@@ -199,12 +225,10 @@ public class MainActivity extends AppCompatActivity {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Intent data = result.getData();
                         if (data != null) {
-                            Uri uriContact = data.getData();
+                            contactUri = data.getData();
                             try {
-                                Contact contact = new Contact(uriContact, MainActivity.this);
-                                Bitmap qrCode = contact.generateQRCode();
-                                name.setText(contact.getFirstLastName());
-                                qrImage.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false));
+                                contact = new Contact(contactUri, MainActivity.this);
+                                createQRCode();
                             } catch (Exception e) {
                                 e.printStackTrace();
                                 Toast.makeText(MainActivity.this, "Failed to retrieve contact info", Toast.LENGTH_LONG).show();
@@ -225,6 +249,7 @@ public class MainActivity extends AppCompatActivity {
                         Intent data = result.getData();
                         if (data != null) {
                             imageUri = data.getData();
+                            MainActivity.this.getContentResolver().takePersistableUriPermission(imageUri, Intent.FLAG_GRANT_READ_URI_PERMISSION);
                             background.setImageURI(imageUri);
                         }
                     }
@@ -242,7 +267,10 @@ public class MainActivity extends AppCompatActivity {
     //EFFECTS: let user pick an image from gallery,
     //         launch chooseImageResultLauncher
     private void chooseImage() {
-        Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+        //Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.INTERNAL_CONTENT_URI);
+        Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+        intent.addCategory(Intent.CATEGORY_OPENABLE);
+        intent.setType("image/*");
         chooseImageResultLauncher.launch(intent);
     }
 }

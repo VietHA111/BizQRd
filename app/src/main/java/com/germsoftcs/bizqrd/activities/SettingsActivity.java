@@ -1,11 +1,11 @@
-package com.germsoft.bizqrd.activities;
+package com.germsoftcs.bizqrd.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.germsoft.bizqrd.model.SettingsFragment;
+import com.germsoftcs.bizqrd.model.SettingsFragment;
 
 public class SettingsActivity extends AppCompatActivity {
     public static final String KEY_NAME_PREF = "pref";

@@ -1,4 +1,4 @@
-package com.germsoft.bizqrd.model;
+package com.germsoftcs.bizqrd.model;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -6,7 +6,7 @@ import android.util.Pair;
 
 import androidx.preference.PreferenceManager;
 
-import com.germsoft.bizqrd.activities.SettingsActivity;
+import com.germsoftcs.bizqrd.activities.SettingsActivity;
 
 import java.util.List;
 import java.util.Map;

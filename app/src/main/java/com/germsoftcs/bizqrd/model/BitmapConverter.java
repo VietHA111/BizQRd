@@ -1,4 +1,4 @@
-package com.germsoft.bizqrd.model;
+package com.germsoftcs.bizqrd.model;
 
 import android.graphics.Bitmap;
 import android.graphics.Canvas;
