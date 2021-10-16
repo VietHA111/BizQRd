@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.germsoft.bizqrd">
+    package="com.germsoftcs.bizqrd">
 
     <uses-permission android:name="android.permission.READ_CONTACTS" />
 
@@ -13,22 +13,25 @@
         android:theme="@style/AppTheme"
         android:fullBackupContent="@xml/backup_descriptor">
 
-        <activity android:name="com.germsoft.bizqrd.activities.SettingsActivity"
+        <activity android:name="com.germsoftcs.bizqrd.activities.SettingsActivity"
             android:label="Settings"
-            android:parentActivityName="com.germsoft.bizqrd.activities.MainActivity">
+            android:exported="true"
+            android:parentActivityName="com.germsoftcs.bizqrd.activities.MainActivity">
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.germsoft.bizqrd.activities.MainActivity"/>
+                android:value="com.germsoftcs.bizqrd.activities.MainActivity"/>
         </activity>
-        <activity android:name="com.germsoft.bizqrd.activities.HelpActivity"
+        <activity android:name="com.germsoftcs.bizqrd.activities.HelpActivity"
             android:label="Help"
-            android:parentActivityName="com.germsoft.bizqrd.activities.MainActivity">
+            android:exported="true"
+            android:parentActivityName="com.germsoftcs.bizqrd.activities.MainActivity">
         <meta-data
             android:name="android.support.PARENT_ACTIVITY"
-            android:value="com.germsoft.bizqrd.activities.MainActivity"/>
+            android:value="com.germsoftcs.bizqrd.activities.MainActivity"/>
         </activity>
-        <activity android:name="com.germsoft.bizqrd.activities.MainActivity"
-            android:theme="@style/Theme.AppCompat.Light.NoActionBar">
+        <activity android:name="com.germsoftcs.bizqrd.activities.MainActivity"
+            android:theme="@style/Theme.AppCompat.Light.NoActionBar"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
