@@ -28,37 +28,40 @@ import android.app.AlertDialog
 import android.net.Uri
 import android.os.Environment
 import android.provider.ContactsContract
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.preference.PreferenceManager
+import kotlinx.coroutines.*
 import java.io.*
 import java.lang.Exception
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
-    private var contact: Contact? = null
-    private var help: ImageButton? = null
-    private var settings: ImageButton? = null
-    private var contacts: ImageButton? = null
-    private var image: ImageButton? = null
-    private var save: ImageButton? = null
-    private var background: ImageView? = null
-    private var qrImage: ImageView? = null
-    private var name: TextView? = null
+    private val viewModelScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private lateinit var contact: Contact
+    private lateinit var help: ImageButton
+    private lateinit var settings: ImageButton
+    private lateinit var contacts: ImageButton
+    private lateinit var image: ImageButton
+    private lateinit var save: ImageButton
+    private lateinit var background: ImageView
+    private lateinit var qrImage: ImageView
+    private lateinit var name: TextView
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         settings = findViewById(R.id.settings)
-        settings!!.setOnClickListener { settingsActivity() }
+        settings.setOnClickListener { settingsActivity() }
         help = findViewById(R.id.help)
-        help!!.setOnClickListener { helpActivity() }
+        help.setOnClickListener { helpActivity() }
         save = findViewById(R.id.save)
-        save!!.setOnClickListener { createDialog() }
+        save.setOnClickListener { createDialog() }
         background = findViewById(R.id.background)
         image = findViewById(R.id.image)
-        image!!.setOnClickListener { chooseImage() }
+        image.setOnClickListener { chooseImage() }
         contacts = findViewById(R.id.contacts)
-        contacts!!.setOnClickListener { contactPermission }
+        contacts.setOnClickListener { contactPermission }
         qrImage = findViewById(R.id.qrCode)
         name = findViewById(R.id.name)
         if (contactUri != null) {
@@ -70,7 +73,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
         if (imageUri != null) {
-            background!!.setImageURI(imageUri)
+            background.setImageURI(imageUri)
         }
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
     }
@@ -154,8 +157,8 @@ class MainActivity : AppCompatActivity() {
     //EFFECTS: return bitmap of background image
     private fun getBackground(): Bitmap {
         val backgroundLayout = findViewById<RelativeLayout>(R.id.backgroundLayout)
-        val prevName = name!!.text
-        name!!.text = ""
+        val prevName = name.text
+        name.text = ""
         val bgImage = Bitmap.createBitmap(backgroundLayout.width, backgroundLayout.height, Bitmap.Config.ARGB_8888)
         val bc = BitmapConverter(bgImage, backgroundLayout, ContextCompat.getColor(this, R.color.white))
         bc.start()
@@ -164,7 +167,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
-        name!!.text = prevName
+        name.text = prevName
         return bgImage
     }
 
@@ -182,26 +185,39 @@ class MainActivity : AppCompatActivity() {
 
     //EFFECTS: create QR code
     @Throws(Exception::class)
-    private fun createQRCode() {
-        val qrCode = contact!!.generateQRCode()
-        name!!.text = contact!!.firstLastName
-        qrImage!!.setImageBitmap(Bitmap.createScaledBitmap(qrCode, 900, 900, false))
+    private fun createQRCode() : Bitmap {
+        return contact.generateQRCode()
     }
 
     //EFFECTS: create QR code for picked contact and display
-    val readContactResultLauncher = registerForActivityResult(
+    private val readContactResultLauncher = registerForActivityResult(
             StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             val data = result.data
             if (data != null) {
-                contactUri = data.data
-                try {
-                    contact = Contact(contactUri, this@MainActivity)
-                    createQRCode()
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    Toast.makeText(this@MainActivity, "Failed to retrieve contact info", Toast.LENGTH_LONG).show()
+                var newQrCode: Bitmap?
+                viewModelScope.launch(Dispatchers.Unconfined) {
+                    contactUri = data.data
+                    try {
+                        withContext (Dispatchers.IO) {
+                            contact = Contact(contactUri, this@MainActivity)
+                            newQrCode = createQRCode()
+                        }
+                        withContext(Dispatchers.Main) {
+                            name.text = contact.firstLastName
+                            qrImage.setImageBitmap(Bitmap.createScaledBitmap(requireNotNull(newQrCode), 900, 900, false))
+                        }
+                    } catch (e: Exception) {
+                        e.printStackTrace()
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                this@MainActivity,
+                                "Failed to retrieve contact info",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    }
                 }
             }
         }
@@ -216,7 +232,7 @@ class MainActivity : AppCompatActivity() {
             if (data != null) {
                 imageUri = data.data
                 this@MainActivity.contentResolver.takePersistableUriPermission(imageUri!!, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                background!!.setImageURI(imageUri)
+                background.setImageURI(imageUri)
             }
         }
     }
