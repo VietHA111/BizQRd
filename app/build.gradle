@@ -1,5 +1,5 @@
 apply plugin: 'com.android.application'
-
+apply plugin: 'kotlin-android'
 
 
 android {
@@ -41,6 +41,8 @@ dependencies {
     implementation 'com.googlecode.ez-vcard:ez-vcard:0.11.2'
     implementation 'androidx.preference:preference:1.1.1'
     implementation "androidx.work:work-runtime:2.7.0"
+    implementation "androidx.core:core-ktx:1.6.0"
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
 }
 
 repositories {
