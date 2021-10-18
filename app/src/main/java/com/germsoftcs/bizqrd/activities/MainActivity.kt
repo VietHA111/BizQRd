@@ -1,40 +1,29 @@
 package com.germsoftcs.bizqrd.activities
 
 import android.Manifest
-import androidx.appcompat.app.AppCompatActivity
-import com.germsoftcs.bizqrd.model.Contact
-import android.os.Bundle
-import com.germsoftcs.bizqrd.R
-import com.germsoftcs.bizqrd.activities.MainActivity
-import androidx.activity.result.ActivityResultLauncher
-import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
-import androidx.activity.result.ActivityResultCallback
-import android.os.Build
-import androidx.core.content.ContextCompat
-import android.content.pm.PackageManager
-import android.content.DialogInterface
-import android.graphics.Bitmap
-import android.content.ContentResolver
-import android.content.ContentValues
-import android.provider.MediaStore
-import com.germsoftcs.bizqrd.model.BitmapConverter
-import android.content.Intent
-import com.germsoftcs.bizqrd.activities.SettingsActivity
-import com.germsoftcs.bizqrd.activities.HelpActivity
-import kotlin.Throws
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
-import android.app.Activity
 import android.app.AlertDialog
+import android.content.ContentValues
+import android.content.DialogInterface
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
+import android.os.Bundle
 import android.os.Environment
 import android.provider.ContactsContract
-import android.util.Log
-import android.view.View
+import android.provider.MediaStore
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
+import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
+import com.germsoftcs.bizqrd.R
+import com.germsoftcs.bizqrd.model.BitmapConverter
+import com.germsoftcs.bizqrd.model.Contact
 import kotlinx.coroutines.*
 import java.io.*
-import java.lang.Exception
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
@@ -67,7 +56,8 @@ class MainActivity : AppCompatActivity() {
         if (contactUri != null) {
             try {
                 contact = Contact(contactUri, this@MainActivity)
-                createQRCode()
+                qrImage.setImageBitmap(Bitmap.createScaledBitmap(createQRCode(), 900, 900, false))
+                name.text = contact.firstLastName
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -107,8 +97,8 @@ class MainActivity : AppCompatActivity() {
         val alertDlg = AlertDialog.Builder(this)
         alertDlg.setMessage("Would you like to save this image?")
         alertDlg.setCancelable(false)
-        alertDlg.setPositiveButton("Yes") { dialog: DialogInterface?, which: Int -> saveImageToGallery() }
-        alertDlg.setNegativeButton("No") { dialog: DialogInterface?, which: Int -> Toast.makeText(this@MainActivity, "The app did not save your image", Toast.LENGTH_LONG).show() }
+        alertDlg.setPositiveButton("Yes") { _: DialogInterface?, _: Int -> saveImageToGallery() }
+        alertDlg.setNegativeButton("No") { _: DialogInterface?, _: Int -> Toast.makeText(this@MainActivity, "The app did not save your image", Toast.LENGTH_LONG).show() }
         alertDlg.create().show()
     }
 
@@ -118,47 +108,74 @@ class MainActivity : AppCompatActivity() {
 //        RelativeLayout backgroundLayout = findViewById(R.id.backgroundLayout);
 //        Bitmap bgArray[] = new Array[];
 //        BitmapConverter bitmapConverter = new BitmapConverter(bg);
-        val time = System.currentTimeMillis()
-        val bitmap = getBackground()
-        val filename = "$time.png"
-        var imageOutStream: OutputStream? = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val resolver = contentResolver
-            val contentValues = ContentValues()
-            contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "$filename.jpg")
-            contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
-            contentValues.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES + "/BizQRd")
-            val imageUri = resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)!!
-            try {
-                imageOutStream = resolver.openOutputStream(Objects.requireNonNull(imageUri))
-            } catch (e: FileNotFoundException) {
-                e.printStackTrace()
+
+
+
+        viewModelScope.launch(Dispatchers.Unconfined) {
+            var bitmap : Bitmap
+            val prevName = name.text
+            name.text = ""
+
+            withContext(Dispatchers.IO) {
+                bitmap = getBackground()
             }
-        } else {
-            val imagesDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES).toString()
-            val image = File(imagesDir, name.toString() + ".jpg")
-            try {
-                imageOutStream = FileOutputStream(image)
-            } catch (e: FileNotFoundException) {
-                e.printStackTrace()
+
+            withContext(Dispatchers.Main) {
+                name.text = prevName
+            }
+
+            withContext(Dispatchers.IO) {
+                val time = System.currentTimeMillis()
+                val filename = "$time.png"
+                var imageOutStream: OutputStream? = null
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val resolver = contentResolver
+                    val contentValues = ContentValues()
+                    contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, "$filename.jpg")
+                    contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
+                    contentValues.put(
+                        MediaStore.MediaColumns.RELATIVE_PATH,
+                        Environment.DIRECTORY_PICTURES + "/BizQRd"
+                    )
+                    val imageUri = resolver.insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
+                        contentValues
+                    )!!
+                    try {
+                        imageOutStream = resolver.openOutputStream(Objects.requireNonNull(imageUri))
+                    } catch (e: FileNotFoundException) {
+                        e.printStackTrace()
+                    }
+                } else {
+                    val imagesDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES).toString()
+                    val image = File(imagesDir, "$name.jpg")
+                    try {
+                        imageOutStream = FileOutputStream(image)
+                    } catch (e: FileNotFoundException) {
+                        e.printStackTrace()
+                    }
+                }
+                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, imageOutStream)
+                if (imageOutStream != null) {
+                    try {
+                        imageOutStream.close()
+                    } catch (e: IOException) {
+                        e.printStackTrace()
+                    }
+                }
+            }
+            withContext(Dispatchers.Main) {
+                Toast.makeText(this@MainActivity, "Photo saved successfully", Toast.LENGTH_LONG)
+                    .show()
             }
         }
-        bitmap.compress(Bitmap.CompressFormat.JPEG, 100, imageOutStream)
-        if (imageOutStream != null) {
-            try {
-                imageOutStream.close()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-        Toast.makeText(this@MainActivity, "Photo saved successfully", Toast.LENGTH_LONG).show()
+
     }
 
     //EFFECTS: return bitmap of background image
     private fun getBackground(): Bitmap {
         val backgroundLayout = findViewById<RelativeLayout>(R.id.backgroundLayout)
-        val prevName = name.text
-        name.text = ""
+
         val bgImage = Bitmap.createBitmap(backgroundLayout.width, backgroundLayout.height, Bitmap.Config.ARGB_8888)
         val bc = BitmapConverter(bgImage, backgroundLayout, ContextCompat.getColor(this, R.color.white))
         bc.start()
@@ -167,7 +184,7 @@ class MainActivity : AppCompatActivity() {
         } catch (e: InterruptedException) {
             e.printStackTrace()
         }
-        name.text = prevName
+
         return bgImage
     }
 
@@ -224,7 +241,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     //EFFECTS: set background as chosen image
-    val chooseImageResultLauncher = registerForActivityResult(
+    private val chooseImageResultLauncher = registerForActivityResult(
             StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
