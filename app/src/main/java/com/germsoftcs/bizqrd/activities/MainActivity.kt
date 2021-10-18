@@ -13,21 +13,25 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.ContactsContract
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.germsoftcs.bizqrd.R
 import com.germsoftcs.bizqrd.model.BitmapConverter
 import com.germsoftcs.bizqrd.model.Contact
+import com.germsoftcs.bizqrd.model.InfoViewModel
 import kotlinx.coroutines.*
 import java.io.*
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private val viewModelScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private lateinit var viewModel: InfoViewModel
     private lateinit var contact: Contact
     private lateinit var help: ImageButton
     private lateinit var settings: ImageButton
@@ -37,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var background: ImageView
     private lateinit var qrImage: ImageView
     private lateinit var name: TextView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -53,10 +58,11 @@ class MainActivity : AppCompatActivity() {
         contacts.setOnClickListener { contactPermission }
         qrImage = findViewById(R.id.qrCode)
         name = findViewById(R.id.name)
+
         if (contactUri != null) {
             try {
                 viewModelScope.launch(Dispatchers.Unconfined) {
-                    createQRCode()
+                    createContactQrCode()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -66,6 +72,8 @@ class MainActivity : AppCompatActivity() {
             background.setImageURI(imageUri)
         }
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
+        Log.i(TAG, "Called ViewModelProvider.get")
+        viewModel = ViewModelProvider(this).get(InfoViewModel::class.java)
     }
 
     //EFFECTS: if read contacts permission is granted, read contacts,
@@ -201,8 +209,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     //EFFECTS: create QR code
+    //         set qrImage to generated QR code
     @Throws(Exception::class)
-    private suspend fun createQRCode() {
+    private suspend fun createContactQrCode() {
         var newQrCode : Bitmap
 
         withContext(Dispatchers.IO) {
@@ -212,7 +221,7 @@ class MainActivity : AppCompatActivity() {
 
         withContext(Dispatchers.Main) {
             name.text = contact.firstLastName
-            qrImage.setImageBitmap(Bitmap.createScaledBitmap(requireNotNull(newQrCode), 900, 900, false))
+            qrImage.setImageBitmap(Bitmap.createScaledBitmap(newQrCode, 900, 900, false))
         }
     }
 
@@ -227,7 +236,7 @@ class MainActivity : AppCompatActivity() {
                     contactUri = data.data
                     try {
 
-                        createQRCode()
+                        createContactQrCode()
 
                     } catch (e: Exception) {
                         e.printStackTrace()
@@ -278,6 +287,7 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private const val TAG = "MainActivityTag"
         private var contactUri: Uri? = null
+        private var qrUri: Uri? = null
         private var imageUri: Uri? = null
     }
 }
