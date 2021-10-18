@@ -55,9 +55,9 @@ class MainActivity : AppCompatActivity() {
         name = findViewById(R.id.name)
         if (contactUri != null) {
             try {
-                contact = Contact(contactUri, this@MainActivity)
-                qrImage.setImageBitmap(Bitmap.createScaledBitmap(createQRCode(), 900, 900, false))
-                name.text = contact.firstLastName
+                viewModelScope.launch(Dispatchers.Unconfined) {
+                    createQRCode()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
@@ -202,8 +202,18 @@ class MainActivity : AppCompatActivity() {
 
     //EFFECTS: create QR code
     @Throws(Exception::class)
-    private fun createQRCode() : Bitmap {
-        return contact.generateQRCode()
+    private suspend fun createQRCode() {
+        var newQrCode : Bitmap
+
+        withContext(Dispatchers.IO) {
+            contact = Contact(contactUri, this@MainActivity)
+            newQrCode = contact.generateQRCode()
+        }
+
+        withContext(Dispatchers.Main) {
+            name.text = contact.firstLastName
+            qrImage.setImageBitmap(Bitmap.createScaledBitmap(requireNotNull(newQrCode), 900, 900, false))
+        }
     }
 
     //EFFECTS: create QR code for picked contact and display
@@ -213,18 +223,12 @@ class MainActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             val data = result.data
             if (data != null) {
-                var newQrCode: Bitmap?
                 viewModelScope.launch(Dispatchers.Unconfined) {
                     contactUri = data.data
                     try {
-                        withContext (Dispatchers.IO) {
-                            contact = Contact(contactUri, this@MainActivity)
-                            newQrCode = createQRCode()
-                        }
-                        withContext(Dispatchers.Main) {
-                            name.text = contact.firstLastName
-                            qrImage.setImageBitmap(Bitmap.createScaledBitmap(requireNotNull(newQrCode), 900, 900, false))
-                        }
+
+                        createQRCode()
+
                     } catch (e: Exception) {
                         e.printStackTrace()
                         withContext(Dispatchers.Main) {
