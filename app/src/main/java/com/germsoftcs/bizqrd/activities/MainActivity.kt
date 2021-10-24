@@ -19,19 +19,16 @@ import androidx.activity.result.contract.ActivityResultContracts.RequestPermissi
 import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import com.germsoftcs.bizqrd.R
 import com.germsoftcs.bizqrd.model.BitmapConverter
 import com.germsoftcs.bizqrd.model.Contact
-import com.germsoftcs.bizqrd.model.InfoViewModel
 import kotlinx.coroutines.*
 import java.io.*
 import java.util.*
 
 class MainActivity : AppCompatActivity() {
     private val viewModelScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
-    private lateinit var viewModel: InfoViewModel
     private lateinit var contact: Contact
     private lateinit var help: ImageButton
     private lateinit var settings: ImageButton
@@ -73,7 +70,6 @@ class MainActivity : AppCompatActivity() {
         }
         PreferenceManager.setDefaultValues(this, R.xml.preferences, false)
         Log.i(TAG, "Called ViewModelProvider.get")
-        viewModel = ViewModelProvider(this).get(InfoViewModel::class.java)
     }
 
     //EFFECTS: if read contacts permission is granted, read contacts,

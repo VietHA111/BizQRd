@@ -1,64 +1,73 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen
+    xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <ListPreference
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:key="qrCodeType"
+        android:title="QR Code"
+        android:entries="@array/qr_code_entries"
+        android:entryValues="@array/qr_code_entries"
+        android:defaultValue="Contact"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="pref"
-        android:title="@string/NamePrefix" />
+        android:title="@string/NamePrefix"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="true"
         android:key="given"
-        android:title="@string/GivenName" />
+        android:title="@string/GivenName"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="middle"
-        android:title="@string/MiddleName" />
+        android:title="@string/MiddleName"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="true"
         android:key="family"
-        android:title="@string/FamilyName" />
+        android:title="@string/FamilyName"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="suff"
-        android:title="@string/NameSuffix" />
+        android:title="@string/NameSuffix"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="email"
-        android:title="@string/Email" />
+        android:title="@string/Email"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="nick"
-        android:title="@string/Nickname" />
+        android:title="@string/Nickname"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="org"
-        android:title="@string/Organization" />
+        android:title="@string/Organization"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="dept"
-        android:title="@string/Department" />
+        android:title="@string/Department"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="job"
-        android:title="@string/JobTitle" />
+        android:title="@string/JobTitle"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="postal"
-        android:title="@string/PostalAddresses" />
+        android:title="@string/PostalAddresses"/>
 
     <androidx.preference.SwitchPreferenceCompat
         android:defaultValue="false"
         android:key="notes"
-        android:title="@string/Notes" />
+        android:title="@string/Notes"/>
 </PreferenceScreen>

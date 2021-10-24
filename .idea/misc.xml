@@ -4,7 +4,10 @@
     <option name="filePathToZoomLevelMap">
       <map>
         <entry key="..\:/Users/vieth/StudioProjects/BizQRd/app/src/main/res/layout/activity_main.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/vieth/StudioProjects/BizQRd/app/src/main/res/layout/contact_settings_fragment.xml" value="0.2046875" />
         <entry key="..\:/Users/vieth/StudioProjects/BizQRd/app/src/main/res/layout/dialog_create_qr_code.xml" value="0.20520833333333333" />
+        <entry key="..\:/Users/vieth/StudioProjects/BizQRd/app/src/main/res/xml/contact_settings_fragment.xml" value="0.2046875" />
+        <entry key="..\:/Users/vieth/StudioProjects/BizQRd/app/src/main/res/xml/preferences.xml" value="0.1" />
       </map>
     </option>
   </component>

@@ -1,4 +1,9 @@
 <resources>
     <!-- Reply Preference -->
 
+    <string-array
+        name="qr_code_entries">
+        <item>Contact</item>
+        <item>Scan from image</item>
+    </string-array>
 </resources>
