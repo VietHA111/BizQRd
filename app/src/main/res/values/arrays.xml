@@ -2,7 +2,8 @@
     <!-- Reply Preference -->
 
     <string-array
-        name="qr_code_entries">
+        name="qr_code_entries"
+        id="qr_code_entries">
         <item>Contact</item>
         <item>Scan from image</item>
     </string-array>

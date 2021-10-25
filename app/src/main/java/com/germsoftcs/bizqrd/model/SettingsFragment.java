@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.util.Log;
 
 import androidx.preference.PreferenceFragmentCompat;
+import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 
 import com.germsoftcs.bizqrd.R;
@@ -24,17 +25,21 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     public void onResume() {
         super.onResume();
         getPreferenceManager().getSharedPreferences().registerOnSharedPreferenceChangeListener(this);
+        setVisibility(getPreferenceManager().getSharedPreferences());
     }
 
     @Override
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         if (s.equals(SettingsActivity.KEY_QR_TYPE)) {
-            PreferenceScreen root = getPreferenceScreen();
-            boolean value = sharedPreferences.getString(SettingsActivity.KEY_QR_TYPE, " ").equals("Contact");
-            for (int i = 1; i < 13; i++) {
-                findPreference(SettingsActivity.PREFERENCE_KEYS[i]).setVisible(value);
-            }
+            setVisibility(sharedPreferences);
         }
+    }
 
+    private void setVisibility(SharedPreferences sharedPreferences) {
+        PreferenceScreen root = getPreferenceScreen();
+        boolean value = sharedPreferences.getString(SettingsActivity.KEY_QR_TYPE, " ").equals("Contact");
+        for (int i = 1; i < 13; i++) {
+            findPreference(SettingsActivity.PREFERENCE_KEYS[i]).setVisible(value);
+        }
     }
 }

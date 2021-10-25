@@ -7,6 +7,8 @@ import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.graphics.ImageDecoder.createSource
+import android.graphics.ImageDecoder.decodeBitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -23,6 +25,10 @@ import androidx.preference.PreferenceManager
 import com.germsoftcs.bizqrd.R
 import com.germsoftcs.bizqrd.model.BitmapConverter
 import com.germsoftcs.bizqrd.model.Contact
+import com.germsoftcs.bizqrd.model.QrScanner
+import com.google.zxing.ChecksumException
+import com.google.zxing.FormatException
+import com.google.zxing.NotFoundException
 import kotlinx.coroutines.*
 import java.io.*
 import java.util.*
@@ -32,7 +38,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var contact: Contact
     private lateinit var help: ImageButton
     private lateinit var settings: ImageButton
-    private lateinit var contacts: ImageButton
+    private lateinit var createButton: ImageButton
     private lateinit var image: ImageButton
     private lateinit var save: ImageButton
     private lateinit var background: ImageView
@@ -51,8 +57,8 @@ class MainActivity : AppCompatActivity() {
         background = findViewById(R.id.background)
         image = findViewById(R.id.image)
         image.setOnClickListener { chooseImage() }
-        contacts = findViewById(R.id.contacts)
-        contacts.setOnClickListener { contactPermission }
+        createButton = findViewById(R.id.create_button)
+        createButton.setOnClickListener { callPermission }
         qrImage = findViewById(R.id.qrCode)
         name = findViewById(R.id.name)
 
@@ -82,17 +88,30 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    //EFFECTS: ask for read contacts permission,
-    //         if already granted, read contacts
-    private val contactPermission: Unit
+    //EFFECTS: ask for appropriate permission,
+    //         if already granted, call appropriate qr generation method
+    private val callPermission: Unit
         get() {
-            if (Build.VERSION.SDK_INT >= 23) {
-                if (ContextCompat.checkSelfPermission(this@MainActivity, Manifest.permission.READ_CONTACTS) == PackageManager.PERMISSION_GRANTED) {
-                    readContacts()
-                } else {
-                    contactRequestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
-                }
-            } else readContacts()
+            if (PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
+                    .getString(SettingsActivity.KEY_QR_TYPE, null)
+                    .equals("Contact")) {
+                if (Build.VERSION.SDK_INT >= 23) {
+                    if (ContextCompat.checkSelfPermission(
+                            this@MainActivity,
+                            Manifest.permission.READ_CONTACTS
+                        ) == PackageManager.PERMISSION_GRANTED
+                    ) {
+                        readContacts()
+                    } else {
+                        contactRequestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+                    }
+                } else readContacts()
+            } else if (PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
+                    .getString(SettingsActivity.KEY_QR_TYPE, null)
+                    .equals("Scan from image")) {
+                //NO PERMISSION NEEDED FOR GALLERY ACCESS
+                scanImage()
+            }
         }
 
     //EFFECTS: ask user if they would like to save the image,
@@ -207,17 +226,64 @@ class MainActivity : AppCompatActivity() {
     //EFFECTS: create QR code
     //         set qrImage to generated QR code
     @Throws(Exception::class)
-    private suspend fun createContactQrCode() {
+    private fun createContactQrCode() {
+
         var newQrCode : Bitmap
 
-        withContext(Dispatchers.IO) {
-            contact = Contact(contactUri, this@MainActivity)
-            newQrCode = contact.generateQRCode()
-        }
+        viewModelScope.launch(Dispatchers.Unconfined) {
+            withContext(Dispatchers.IO) {
+                contact = Contact(contactUri, this@MainActivity)
+                newQrCode = contact.generateQRCode()
+            }
 
-        withContext(Dispatchers.Main) {
-            name.text = contact.firstLastName
-            qrImage.setImageBitmap(Bitmap.createScaledBitmap(newQrCode, 900, 900, false))
+            withContext(Dispatchers.Main) {
+                name.text = contact.firstLastName
+                qrImage.setImageBitmap(Bitmap.createScaledBitmap(newQrCode, 900, 900, false))
+            }
+        }
+    }
+
+    //EFFECTS: scans image for QR code
+    //         set qrImage to scanned QR code
+    private fun scanImageQrCode() {
+        viewModelScope.launch(Dispatchers.Unconfined) {
+            try {
+                var qrCode: Bitmap? = null
+                withContext(Dispatchers.IO) {
+                    val bitmap = decodeBitmap(createSource(contentResolver, qrUri!!)).copy(Bitmap.Config.RGB_565, true)
+                    qrCode = QrScanner.scan(bitmap)
+                }
+                withContext(Dispatchers.Main) {
+                    qrImage.setImageBitmap(qrCode)
+                }
+            } catch (e: NotFoundException) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Could not find a QR code",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                e.message?.let { Log.e(TAG, it)}
+            } catch (e: FormatException) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Could not decode the QR code",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                e.message?.let { Log.e(TAG, it) }
+            } catch (e: ChecksumException) {
+                withContext(Dispatchers.Main) {
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Scan failed",
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                e.message?.let { Log.e(TAG, it) }
+            }
         }
     }
 
@@ -228,37 +294,46 @@ class MainActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             val data = result.data
             if (data != null) {
-                viewModelScope.launch(Dispatchers.Unconfined) {
-                    contactUri = data.data
-                    try {
-
-                        createContactQrCode()
-
-                    } catch (e: Exception) {
-                        e.printStackTrace()
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                this@MainActivity,
-                                "Failed to retrieve contact info",
-                                Toast.LENGTH_LONG
-                            ).show()
-                        }
-                    }
+                contactUri = data.data
+                try {
+                    createContactQrCode()
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    Toast.makeText(
+                        this@MainActivity,
+                        "Failed to retrieve contact info",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
             }
         }
     }
 
+    //EFFECTS: scan image for qr code and add to screen
+    private val scanImageResultLauncher = registerForActivityResult(
+        StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val data = result.data
+            if (data != null) {
+                qrUri = data.data
+                this@MainActivity.contentResolver.takePersistableUriPermission(qrUri!!, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                scanImageQrCode()
+            }
+        }
+
+    }
+
     //EFFECTS: set background as chosen image
     private val chooseImageResultLauncher = registerForActivityResult(
-            StartActivityForResult()
+        StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
             val data = result.data
             if (data != null) {
                 imageUri = data.data
                 this@MainActivity.contentResolver.takePersistableUriPermission(imageUri!!, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                background.setImageURI(imageUri)
+                scanImageQrCode()
             }
         }
     }
@@ -268,6 +343,13 @@ class MainActivity : AppCompatActivity() {
     private fun readContacts() {
         val intent = Intent(Intent.ACTION_PICK, ContactsContract.Contacts.CONTENT_URI)
         readContactResultLauncher.launch(intent)
+    }
+
+    private fun scanImage() {
+        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT)
+        intent.addCategory(Intent.CATEGORY_OPENABLE)
+        intent.type = "image/*"
+        scanImageResultLauncher.launch(intent)
     }
 
     //EFFECTS: let user pick an image from gallery,

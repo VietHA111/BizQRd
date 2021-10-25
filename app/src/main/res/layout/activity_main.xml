@@ -74,12 +74,12 @@
         android:orientation="horizontal">
 
         <ImageButton
-            android:id="@+id/contacts"
+            android:id="@+id/create_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:background="#FFFFFF"
-            android:contentDescription="@string/choose_contact"
+            android:contentDescription="@string/create_qr_code"
             app:srcCompat="@drawable/icons8_person_48" />
 
         <ImageButton
