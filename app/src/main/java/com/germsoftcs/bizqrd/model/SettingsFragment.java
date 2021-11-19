@@ -2,16 +2,13 @@ package com.germsoftcs.bizqrd.model;
 
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.util.Log;
 
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.preference.PreferenceManager;
 import androidx.preference.PreferenceScreen;
 
 import com.germsoftcs.bizqrd.R;
+import com.germsoftcs.bizqrd.activities.MainActivity;
 import com.germsoftcs.bizqrd.activities.SettingsActivity;
-
-import java.util.Map;
 
 public class SettingsFragment extends PreferenceFragmentCompat implements SharedPreferences.OnSharedPreferenceChangeListener {
     private final static String TAG = "SettingsFragment";
@@ -32,6 +29,7 @@ public class SettingsFragment extends PreferenceFragmentCompat implements Shared
     public void onSharedPreferenceChanged(SharedPreferences sharedPreferences, String s) {
         if (s.equals(SettingsActivity.KEY_QR_TYPE)) {
             setVisibility(sharedPreferences);
+            MainActivity.Companion.reset();
         }
     }
 

@@ -5,6 +5,7 @@ import android.app.AlertDialog
 import android.content.ContentValues
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder.createSource
@@ -15,6 +16,7 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.ContactsContract
 import android.provider.MediaStore
+import android.provider.MediaStore.Images.Media.getBitmap
 import android.util.Log
 import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts.RequestPermission
@@ -23,18 +25,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.preference.PreferenceManager
 import com.germsoftcs.bizqrd.R
-import com.germsoftcs.bizqrd.model.BitmapConverter
-import com.germsoftcs.bizqrd.model.Contact
-import com.germsoftcs.bizqrd.model.QrScanner
+import com.germsoftcs.bizqrd.model.*
 import com.google.zxing.ChecksumException
 import com.google.zxing.FormatException
 import com.google.zxing.NotFoundException
 import kotlinx.coroutines.*
 import java.io.*
 import java.util.*
+import kotlin.math.roundToInt
 
 class MainActivity : AppCompatActivity() {
     private val viewModelScope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private lateinit var pref: SharedPreferences
     private lateinit var contact: Contact
     private lateinit var help: ImageButton
     private lateinit var settings: ImageButton
@@ -48,21 +50,32 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+        pref = PreferenceManager.getDefaultSharedPreferences(this)
         settings = findViewById(R.id.settings)
         settings.setOnClickListener { settingsActivity() }
         help = findViewById(R.id.help)
         help.setOnClickListener { helpActivity() }
         save = findViewById(R.id.save)
-        save.setOnClickListener { createDialog() }
+        save.setOnClickListener { if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+            writePermission
+            } else {
+                createDialog()
+            }
+        }
         background = findViewById(R.id.background)
         image = findViewById(R.id.image)
         image.setOnClickListener { chooseImage() }
         createButton = findViewById(R.id.create_button)
+        if (pref.getString(SettingsActivity.KEY_QR_TYPE, "") == "Contact") {
+            createButton.setImageResource(R.drawable.icons8_person_48)
+        } else if (pref.getString(SettingsActivity.KEY_QR_TYPE, "") == "Scan from image") {
+            createButton.setImageResource(R.drawable.icon_qrcode)
+        }
         createButton.setOnClickListener { callPermission }
         qrImage = findViewById(R.id.qrCode)
         name = findViewById(R.id.name)
 
-        if (contactUri != null) {
+        if (contactUri != null && pref.getString(SettingsActivity.KEY_QR_TYPE, "") == "Contact") {
             try {
                 viewModelScope.launch(Dispatchers.Unconfined) {
                     createContactQrCode()
@@ -70,6 +83,9 @@ class MainActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+        if (qrUri != null && pref.getString(SettingsActivity.KEY_QR_TYPE, "") == "Scan from image") {
+            scanImageQrCode()
         }
         if (imageUri != null) {
             background.setImageURI(imageUri)
@@ -95,17 +111,15 @@ class MainActivity : AppCompatActivity() {
             if (PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
                     .getString(SettingsActivity.KEY_QR_TYPE, null)
                     .equals("Contact")) {
-                if (Build.VERSION.SDK_INT >= 23) {
-                    if (ContextCompat.checkSelfPermission(
-                            this@MainActivity,
-                            Manifest.permission.READ_CONTACTS
-                        ) == PackageManager.PERMISSION_GRANTED
-                    ) {
-                        readContacts()
-                    } else {
-                        contactRequestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
-                    }
-                } else readContacts()
+                if (ContextCompat.checkSelfPermission(
+                        this@MainActivity,
+                        Manifest.permission.READ_CONTACTS
+                    ) == PackageManager.PERMISSION_GRANTED
+                ) {
+                    readContacts()
+                } else {
+                    contactRequestPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+                }
             } else if (PreferenceManager.getDefaultSharedPreferences(this@MainActivity)
                     .getString(SettingsActivity.KEY_QR_TYPE, null)
                     .equals("Scan from image")) {
@@ -114,9 +128,35 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+    //EFFECTS: if write permission is granted, createDialog(),
+    //         else show Toast
+    private val writeRequestPermissionLauncher = registerForActivityResult(RequestPermission()) { isGranted: Boolean ->
+        if (isGranted) {
+            createDialog()
+        } else {
+            Toast.makeText(this@MainActivity, "The app was not allowed to save images", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    //EFFECTS: ask for write permission
+    //         if write permission is granted, createDialog()
+    private val writePermission: Unit
+        get() {
+            if (ContextCompat.checkSelfPermission(
+                    this@MainActivity,
+                    Manifest.permission.WRITE_EXTERNAL_STORAGE
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
+                createDialog()
+            } else {
+                writeRequestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            }
+        }
+
     //EFFECTS: ask user if they would like to save the image,
     //         show Toast reflecting user's decision and the outcome
     private fun createDialog() {
+
         val alertDlg = AlertDialog.Builder(this)
         alertDlg.setMessage("Would you like to save this image?")
         alertDlg.setCancelable(false)
@@ -149,8 +189,9 @@ class MainActivity : AppCompatActivity() {
 
             withContext(Dispatchers.IO) {
                 val time = System.currentTimeMillis()
-                val filename = "$time.png"
+                val filename = "$time"
                 var imageOutStream: OutputStream? = null
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     val resolver = contentResolver
                     val contentValues = ContentValues()
@@ -163,34 +204,50 @@ class MainActivity : AppCompatActivity() {
                     val imageUri = resolver.insert(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                         contentValues
-                    )!!
+                    ) ?: throw IOException("Failed to create new MediaStore record.")
+
                     try {
                         imageOutStream = resolver.openOutputStream(Objects.requireNonNull(imageUri))
+
                     } catch (e: FileNotFoundException) {
                         e.printStackTrace()
                     }
                 } else {
-                    val imagesDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES).toString()
-                    val image = File(imagesDir, "$name.jpg")
+                    val imagesDir = File(Environment.getExternalStoragePublicDirectory(
+                        Environment.DIRECTORY_PICTURES).toString() + File.separator + "BizQRd"
+                    )
+                    if (!imagesDir.exists()) {
+                        imagesDir.mkdir()
+                    }
+                    val image = File(imagesDir, "$filename.jpg")
                     try {
                         imageOutStream = FileOutputStream(image)
                     } catch (e: FileNotFoundException) {
                         e.printStackTrace()
+                        Log.e(TAG, "imageOutStream FAILING")
                     }
                 }
-                bitmap.compress(Bitmap.CompressFormat.JPEG, 100, imageOutStream)
+
+
                 if (imageOutStream != null) {
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, imageOutStream)
                     try {
                         imageOutStream.close()
                     } catch (e: IOException) {
                         e.printStackTrace()
                     }
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@MainActivity, "Photo saved successfully", Toast.LENGTH_LONG)
+                            .show()
+                    }
+                } else {
+                    withContext(Dispatchers.Main) {
+                        Toast.makeText(this@MainActivity, "Photo could not be saved", Toast.LENGTH_LONG)
+                            .show()
+                    }
                 }
             }
-            withContext(Dispatchers.Main) {
-                Toast.makeText(this@MainActivity, "Photo saved successfully", Toast.LENGTH_LONG)
-                    .show()
-            }
+
         }
 
     }
@@ -238,7 +295,8 @@ class MainActivity : AppCompatActivity() {
 
             withContext(Dispatchers.Main) {
                 name.text = contact.firstLastName
-                qrImage.setImageBitmap(Bitmap.createScaledBitmap(newQrCode, 900, 900, false))
+                qrImage.setImageBitmap(Bitmap.createScaledBitmap(newQrCode, QRCodeGenerator.QR_CODE_HEIGHT, QRCodeGenerator.QR_CODE_WIDTH, false))
+                addPaddingQrImage()
             }
         }
     }
@@ -248,13 +306,18 @@ class MainActivity : AppCompatActivity() {
     private fun scanImageQrCode() {
         viewModelScope.launch(Dispatchers.Unconfined) {
             try {
-                var qrCode: Bitmap? = null
+                var qrCode: Bitmap?
                 withContext(Dispatchers.IO) {
-                    val bitmap = decodeBitmap(createSource(contentResolver, qrUri!!)).copy(Bitmap.Config.RGB_565, true)
+                    val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                        decodeBitmap(createSource(contentResolver, qrUri!!)).copy(Bitmap.Config.RGB_565, true)
+                    } else {
+                        getBitmap(contentResolver, qrUri!!)
+                    }
                     qrCode = QrScanner.scan(bitmap)
                 }
                 withContext(Dispatchers.Main) {
                     qrImage.setImageBitmap(qrCode)
+                    addPaddingQrImage()
                 }
             } catch (e: NotFoundException) {
                 withContext(Dispatchers.Main) {
@@ -333,7 +396,7 @@ class MainActivity : AppCompatActivity() {
             if (data != null) {
                 imageUri = data.data
                 this@MainActivity.contentResolver.takePersistableUriPermission(imageUri!!, Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                scanImageQrCode()
+                background.setImageURI(imageUri)
             }
         }
     }
@@ -362,10 +425,22 @@ class MainActivity : AppCompatActivity() {
         chooseImageResultLauncher.launch(intent)
     }
 
+    private fun addPaddingQrImage() {
+        val scale = resources.displayMetrics.density
+        val dpAsPixels: Int = (20 * scale).roundToInt()
+        qrImage.setPadding(dpAsPixels, dpAsPixels, dpAsPixels, dpAsPixels)
+    }
+
     companion object {
         private const val TAG = "MainActivityTag"
         private var contactUri: Uri? = null
         private var qrUri: Uri? = null
         private var imageUri: Uri? = null
+
+        fun reset() {
+            contactUri = null
+            qrUri = null
+
+        }
     }
 }
