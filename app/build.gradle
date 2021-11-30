@@ -15,8 +15,8 @@ android {
         applicationId "com.germsoftcs.bizqrd"
         minSdkVersion 20
         targetSdkVersion 31
-        versionCode 7
-        versionName '1.1'
+        versionCode 10
+        versionName '1.2'
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         multiDexEnabled true
@@ -24,7 +24,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled true
+            minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
             ndk {
                 debugSymbolLevel 'SYMBOL_TABLE'

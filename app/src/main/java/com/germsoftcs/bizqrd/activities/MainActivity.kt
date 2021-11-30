@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
         qrImage = findViewById(R.id.qrCode)
         name = findViewById(R.id.name)
 
-        if (contactUri != null && pref.getString(SettingsActivity.KEY_QR_TYPE, "") == "Contact") {
+        if (qrUri != null && pref.getString(SettingsActivity.KEY_QR_TYPE, "") == "Contact") {
             try {
                 viewModelScope.launch(Dispatchers.Unconfined) {
                     createContactQrCode()
@@ -289,7 +289,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModelScope.launch(Dispatchers.Unconfined) {
             withContext(Dispatchers.IO) {
-                contact = Contact(contactUri, this@MainActivity)
+                contact = Contact(qrUri, this@MainActivity)
                 newQrCode = contact.generateQRCode()
             }
 
@@ -357,7 +357,7 @@ class MainActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             val data = result.data
             if (data != null) {
-                contactUri = data.data
+                qrUri = data.data
                 try {
                     createContactQrCode()
                 } catch (e: Exception) {
@@ -433,14 +433,12 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         private const val TAG = "MainActivityTag"
-        private var contactUri: Uri? = null
         private var qrUri: Uri? = null
         private var imageUri: Uri? = null
 
         fun reset() {
-            contactUri = null
             qrUri = null
-
+            imageUri = null
         }
     }
 }
